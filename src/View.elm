@@ -41,7 +41,7 @@ tileSelect args dict =
                         (\level ->
                             level.grid
                                 |> View.Svg.tile
-                                    { cellSize = Config.bigCellSize
+                                    { tileSize = Config.bigCellSize
                                     , active =
                                         \pos ->
                                             level.paths
@@ -83,7 +83,7 @@ tileSelect args dict =
                                 (\rotate ->
                                     level.grid
                                         |> View.Svg.tile
-                                            { cellSize = Config.smallCellSize
+                                            { tileSize = Config.smallCellSize
                                             , active =
                                                 \pos ->
                                                     level.paths
@@ -146,7 +146,7 @@ savedLevels args fun dict =
             (\( id, level ) ->
                 [ level.grid
                     |> View.Svg.tile
-                        { cellSize = Config.bigCellSize
+                        { tileSize = Config.bigCellSize
                         , active =
                             \pos ->
                                 level.paths
@@ -210,7 +210,7 @@ tileLevel1 args cell =
         Nothing
         cell
         |> View.Svg.singleCell
-            { cellSize = args.cellSize
+            { tileSize = args.cellSize
             , render =
                 View.Render.cellRender
                     cell
@@ -244,7 +244,7 @@ tileGeneric args g cell =
                         in
                         level.grid
                             |> View.Svg.tile
-                                { cellSize = args.cellSize
+                                { tileSize = args.cellSize
                                 , active =
                                     \pos ->
                                         activePos
@@ -268,7 +268,7 @@ tileGeneric args g cell =
                     }
                     Nothing
                 |> View.Svg.singleCell
-                    { cellSize = args.cellSize
+                    { tileSize = args.cellSize
                     , render =
                         View.Render.cellRender
                             cell
@@ -290,10 +290,10 @@ game attrs args maybeGame =
     maybeGame
         |> Maybe.map
             (\g ->
-                List.range -1 4
+                List.range -1 (Config.gridSize args.level)
                     |> List.map
                         (\y ->
-                            List.range -1 4
+                            List.range -1 (Config.gridSize args.level)
                                 |> List.map
                                     (\x ->
                                         g

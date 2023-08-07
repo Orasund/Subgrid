@@ -48,7 +48,7 @@ tileSelect args dict =
                         (\rotate ->
                             level.grid
                                 |> View.Svg.tile
-                                    { cellSize = Config.bigCellSize
+                                    { tileSize = Config.bigCellSize
                                     , active =
                                         \pos ->
                                             level.paths

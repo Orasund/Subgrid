@@ -469,7 +469,7 @@ update msg model =
                 |> Maybe.map
                     (\game ->
                         game
-                            |> Game.clearStage
+                            |> Game.clearStage model.level
                             |> (\g ->
                                     { model
                                         | game = g |> Just

@@ -1,6 +1,7 @@
 module Game exposing (..)
 
 import Cell exposing (Cell(..), Connection)
+import Config
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level)
@@ -128,7 +129,6 @@ toSave level game =
 
 tick :
     { computeActiveConnections : ( ( Int, Int ), Connection ) -> Stage -> Connection
-    , powerStrength : Int
     , level : Level
     }
     -> Game
@@ -177,7 +177,7 @@ tick args game =
                                                 )
                                 )
                             |> (\list ->
-                                    if List.length list < args.powerStrength then
+                                    if List.length list < Config.powerStrengths args.level then
                                         []
 
                                     else
@@ -231,7 +231,6 @@ update level modules game =
         tick
             { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
             , level = level
-            , powerStrength = 1
             }
             game
 
@@ -239,11 +238,10 @@ update level modules game =
         tick
             { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric level modules a pos
             , level = level
-            , powerStrength = 2
             }
             game
 
 
-clearStage : Game -> Game
-clearStage game =
-    { game | stage = game.stage |> Stage.clear }
+clearStage : Level -> Game -> Game
+clearStage level game =
+    { game | stage = game.stage |> Stage.clear level }

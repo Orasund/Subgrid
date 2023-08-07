@@ -1,6 +1,7 @@
 module Stage exposing (..)
 
 import Cell exposing (Cell(..), Connection)
+import Config
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level)
@@ -225,13 +226,13 @@ sendsEnergy args stage pos =
             Nothing
 
 
-clear : Stage -> Stage
-clear stage =
+clear : Level -> Stage -> Stage
+clear level stage =
     { stage
         | grid =
             stage.grid
                 |> Dict.filter
                     (\( x, y ) _ ->
-                        x == -1 || x == 4 || y == -1 || y == 4
+                        x == -1 || x == Config.gridSize level || y == -1 || y == Config.gridSize level
                     )
     }

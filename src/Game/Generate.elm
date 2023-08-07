@@ -8,13 +8,40 @@ import StaticArray exposing (StaticArray)
 
 levels : StaticArray LevelAmount (Int -> Maybe Game)
 levels =
-    ( level1
-    , [ level2
+    ( level0
+    , [ level1
       , level2
       , level2
       ]
     )
         |> StaticArray.fromList Level.maxLevel
+
+
+level0 : Int -> Maybe Game
+level0 stage =
+    case stage of
+        1 ->
+            Stage.parse
+                [ "⬛⬛🟥⬛"
+                , "🔘⬜⬜⬛"
+                , "⬛⬜⬜⬛"
+                , "⬛⬛⬛⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        2 ->
+            Stage.parse
+                [ "⬛⬛🟥⬛"
+                , "🔘⬜⬜🟥"
+                , "⬛⬜⬜⬛"
+                , "⬛⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        _ ->
+            Nothing
 
 
 {-| We have to start with these three stages, because you always need three varients in order to solve all levels

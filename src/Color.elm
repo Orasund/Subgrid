@@ -67,7 +67,8 @@ darkGray =
 primaryColors : StaticArray LevelAmount String
 primaryColors =
     ( --red
-      "#cc353c"
+      --"#cc353c"
+      "#d9554a"
     , [ --green
         "#23bf24"
       , --violett

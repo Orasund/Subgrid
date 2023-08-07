@@ -1,9 +1,11 @@
 module View.Svg exposing (..)
 
 import Cell exposing (Cell)
+import Config
 import Dict exposing (Dict)
 import Level exposing (Level)
 import RelativePos exposing (RelativePos)
+import StaticArray.Index as Index
 import Svg exposing (Svg)
 import Svg.Attributes
 
@@ -13,7 +15,7 @@ type alias RenderFunction msg =
 
 
 tile :
-    { cellSize : Int
+    { tileSize : Int
     , active : ( Int, Int ) -> { originId : Maybe Int }
     , render : Cell -> RenderFunction msg
     , level : Level
@@ -36,16 +38,20 @@ tile args dict =
                 , render = args.render cell
                 }
             )
-        |> fromPixels { cellSize = args.cellSize, size = 6, background = args.background }
+        |> fromPixels
+            { tileSize = args.tileSize
+            , size = 2 + Config.gridSize (Level.previous args.level |> Maybe.withDefault Index.first)
+            , background = args.background
+            }
 
 
-singleCell : { cellSize : Int, render : RenderFunction msg, background : String } -> String -> Svg msg
+singleCell : { tileSize : Int, render : RenderFunction msg, background : String } -> String -> Svg msg
 singleCell args color =
     [ { pos = ( 0, 0 ), color = color, render = args.render } ]
-        |> fromPixels { cellSize = args.cellSize, size = 1, background = args.background }
+        |> fromPixels { tileSize = args.tileSize, size = 1, background = args.background }
 
 
-fromPixels : { cellSize : Int, size : Int, background : String } -> List { pos : ( Int, Int ), color : String, render : RenderFunction msg } -> Svg msg
+fromPixels : { tileSize : Int, size : Int, background : String } -> List { pos : ( Int, Int ), color : String, render : RenderFunction msg } -> Svg msg
 fromPixels args pixels =
     let
         canvasSize =
@@ -78,7 +84,7 @@ fromPixels args pixels =
                 []
             )
         |> Svg.svg
-            [ Svg.Attributes.width (String.fromInt args.cellSize)
-            , Svg.Attributes.height (String.fromInt args.cellSize)
+            [ Svg.Attributes.width (String.fromInt args.tileSize)
+            , Svg.Attributes.height (String.fromInt args.tileSize)
             , Svg.Attributes.viewBox ("0 0 " ++ String.fromInt canvasSize ++ " " ++ String.fromInt canvasSize)
             ]
