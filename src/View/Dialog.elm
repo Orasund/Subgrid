@@ -155,3 +155,12 @@ levelSolved args =
         |> Layout.row [ Layout.gap 8 ]
     ]
         |> (\list -> { content = list, dismiss = Just args.dismiss })
+
+
+tutorial : { message : List String, dismiss : msg } -> DialogHtml msg
+tutorial args =
+    [ "How to Play" |> View.cardTitle
+    , args.message |> List.map (Layout.text []) |> Layout.column [ Layout.gap 8 ]
+    , View.primaryButton args.dismiss "Got it"
+    ]
+        |> (\list -> { content = list, dismiss = Just args.dismiss })

@@ -23,6 +23,7 @@ type Dialog
     = LevelComplete
     | LevelSelect
     | TileSelect ( Int, Int )
+    | Tutorial (List String)
 
 
 type alias Model =
@@ -63,7 +64,13 @@ init () =
       , updating = False
       , level = level
       , stage = 1
-      , dialog = Nothing
+      , dialog =
+            [ "Power all targets (circles) to solve the level."
+            , "Connect the power (red squares) with the target by clicking on the tiles between."
+            , "Each level has 2-5 possible solutions."
+            ]
+                |> Tutorial
+                |> Just
       , tileSelected = Nothing
       }
     , Cmd.none
@@ -227,6 +234,13 @@ view model =
                                             , cellSize = Config.smallCellSize
                                             }
                                 )
+
+                    Tutorial message ->
+                        View.Dialog.tutorial
+                            { message = message
+                            , dismiss = SetDialog Nothing
+                            }
+                            |> Just
             )
         |> Maybe.map
             (\{ content, dismiss } ->

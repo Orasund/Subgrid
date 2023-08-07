@@ -82,7 +82,7 @@ targetRender { secondaryColor, variant, small, fill } args =
             , Svg.Attributes.y (y |> String.fromInt)
             ]
             []
-        , case variant of
+        , case 0 of
             2 ->
                 Svg.path
                     (Svg.Attributes.d
