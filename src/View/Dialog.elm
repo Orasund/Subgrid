@@ -61,6 +61,10 @@ tileSelect args dict =
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
                                     , background = Color.tileBackground
+                                    , cellToColor =
+                                        Cell.toColor
+                                            { level = Level.previous args.level |> Maybe.withDefault Index.first
+                                            }
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"

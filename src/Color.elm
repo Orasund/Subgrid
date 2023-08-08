@@ -6,7 +6,7 @@ import StaticArray exposing (StaticArray)
 
 background : Level -> String
 background level =
-    "linear-gradient(" ++ white ++ ", " ++ inactiveLaser level ++ ")"
+    "linear-gradient(" ++ white ++ ", " ++ inactiveLaser level ++ " 66%)"
 
 
 tileBackground : String
@@ -66,13 +66,16 @@ darkGray =
 
 primaryColors : StaticArray LevelAmount String
 primaryColors =
-    ( --red
-      --"#cc353c"
-      "#d9554a"
-    , [ --green
+    ( --yellow
+      "#e0e12e"
+    , [ --red
+        --"#cc353c"
+        "#ff6a6a"
+      , --green
         "#23bf24"
       , --violett
-        "#cc35a1"
+        --"#cc35a1"
+        "#ed5ac3"
       , --türkis
         "#0096c0"
       ]

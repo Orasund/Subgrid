@@ -20,6 +20,7 @@ tile :
     , render : Cell -> RenderFunction msg
     , level : Level
     , background : String
+    , cellToColor : Maybe { originId : Maybe Int } -> Cell -> String
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -31,10 +32,7 @@ tile args dict =
                 { pos = ( x + 1, y + 1 )
                 , color =
                     cell
-                        |> Cell.toColor
-                            { level = args.level
-                            }
-                            (args.active ( x, y ) |> Just)
+                        |> args.cellToColor (args.active ( x, y ) |> Just)
                 , render = args.render cell
                 }
             )

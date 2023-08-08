@@ -8,17 +8,44 @@ import StaticArray exposing (StaticArray)
 
 levels : StaticArray LevelAmount (Int -> Maybe Game)
 levels =
-    ( level0
-    , [ level1
-      , level2
-      , level2
+    ( level1
+    , [ level2
+      , level3
+      , level4
+      , level7
+      , level7
       ]
     )
         |> StaticArray.fromList Level.maxLevel
 
 
-level0 : Int -> Maybe Game
-level0 stage =
+level1 : Int -> Maybe Game
+level1 stage =
+    case stage of
+        1 ->
+            Stage.parse
+                [ "⬛🟥⬛"
+                , "🔘⬜⬛"
+                , "⬛⬛⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        2 ->
+            Stage.parse
+                [ "⬛🟥⬛"
+                , "🔘⬜🟥"
+                , "⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        _ ->
+            Nothing
+
+
+level2 : Int -> Maybe Game
+level2 stage =
     case stage of
         1 ->
             Stage.parse
@@ -44,6 +71,73 @@ level0 stage =
             Nothing
 
 
+level3 : Int -> Maybe Game
+level3 stage =
+    case stage of
+        1 ->
+            Stage.parse
+                [ "⬛⬛🟥⬛"
+                , "🔘⬜⬜⬛"
+                , "⬛⬜⬜🟥"
+                , "⬛⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        2 ->
+            Stage.parse
+                [ "⬛⬛🟥⬛"
+                , "🔘⬜⬜🟥"
+                , "⬛⬜⬜⬛"
+                , "⬛⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        _ ->
+            Nothing
+
+
+level4 : Int -> Maybe Game
+level4 stage =
+    case stage of
+        1 ->
+            Stage.parse
+                [ "⬛🔘⬛🟥⬛"
+                , "🟥⬜⬜⬜🔘"
+                , "⬛⬜⬜⬜⬛"
+                , "🔘⬜⬜⬜⬛"
+                , "⬛🟥⬛⬛⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        2 ->
+            Stage.parse
+                [ "⬛🟥⬛🔘⬛"
+                , "🔘⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜🔘"
+                , "⬛⬛⬛🟥⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        3 ->
+            Stage.parse
+                [ "⬛🔘⬛🟥⬛"
+                , "🔘⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜🟥"
+                , "⬛⬛⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        _ ->
+            Nothing
+
+
 {-| We have to start with these three stages, because you always need three varients in order to solve all levels
 
 An alternative to this would be to introduce a stage that is just a crossing. But this is not really fun.
@@ -51,8 +145,8 @@ An alternative to this would be to introduce a stage that is just a crossing. Bu
 So this is the next best thing.
 
 -}
-level1 : Int -> Maybe Game
-level1 stage =
+level5 : Int -> Maybe Game
+level5 stage =
     case stage of
         1 ->
             --player is forced to cross lines
@@ -97,7 +191,7 @@ level1 stage =
             Nothing
 
 
-level2 stage =
+level7 stage =
     case stage of
         1 ->
             Stage.parse
@@ -125,12 +219,12 @@ level2 stage =
 
         3 ->
             Stage.parse
-                [ "⬛⬛🔘🔘⬛⬛"
+                [ "⬛⬛🟥🔘⬛⬛"
                 , "⬛⬜⬜⬜⬜⬛"
                 , "🟥⬜⬜⬜⬜⬛"
-                , "🔘⬜⬜⬜⬜🟥"
+                , "🟥⬜⬜⬜⬜🔘"
                 , "⬛⬜⬜⬜⬜⬛"
-                , "⬛⬛⬛🟥⬛⬛"
+                , "⬛⬛⬛🔘⬛⬛"
                 ]
                 |> Game.fromStage
                 |> Just

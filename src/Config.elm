@@ -26,11 +26,21 @@ maxPos level =
 
 
 gridSize level =
-    if level == Index.first then
-        2
+    case level |> Index.toInt of
+        0 ->
+            1
 
-    else
-        4
+        1 ->
+            2
+
+        2 ->
+            2
+
+        3 ->
+            3
+
+        _ ->
+            4
 
 
 powerStrengths level =
@@ -39,6 +49,12 @@ powerStrengths level =
             1
 
         1 ->
+            1
+
+        2 ->
+            1
+
+        3 ->
             1
 
         _ ->

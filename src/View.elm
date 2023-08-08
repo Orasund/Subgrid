@@ -54,6 +54,13 @@ tileSelect args dict =
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
                                     , background = Color.tileBackground
+                                    , cellToColor =
+                                        Cell.toColor
+                                            { level =
+                                                args.level
+                                                    |> Level.previous
+                                                    |> Maybe.withDefault Index.first
+                                            }
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"
@@ -96,6 +103,13 @@ tileSelect args dict =
                                             , render = \_ -> View.Render.boxRender
                                             , level = args.level
                                             , background = Color.tileBackground
+                                            , cellToColor =
+                                                Cell.toColor
+                                                    { level =
+                                                        args.level
+                                                            |> Level.previous
+                                                            |> Maybe.withDefault Index.first
+                                                    }
                                             }
                                         |> Layout.el
                                             [ Html.Attributes.style "transform"
@@ -133,6 +147,8 @@ gameWon =
              , Html.Attributes.style "height" ((Config.bigCellSize * 6 |> String.fromInt) ++ "px")
              , Html.Attributes.style "color" "white"
              , Html.Attributes.style "font-size" "2rem"
+             , Html.Attributes.style "border-radius" "1rem"
+             , Html.Attributes.style "overflow" "hidden"
              ]
                 ++ Layout.centered
             )
@@ -159,6 +175,7 @@ savedLevels args fun dict =
                         , render = \_ -> View.Render.boxRender
                         , level = args.level
                         , background = Color.tileBackground
+                        , cellToColor = Cell.toColor { level = args.level }
                         }
                 , Layout.text [] (stageName { level = args.level, stage = id })
                 ]
@@ -253,6 +270,7 @@ tileGeneric args g cell =
                                 , render = \_ -> View.Render.boxRender
                                 , level = args.level
                                 , background = Color.tileBackground
+                                , cellToColor = Cell.toColor { level = args.level }
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -311,13 +329,15 @@ game attrs args maybeGame =
                                     )
                                 |> Layout.row [ Layout.noWrap ]
                         )
-                    |> Layout.column attrs
+                    |> Layout.column
+                        ([ Html.Attributes.style "border-radius" "1rem"
+                         , Html.Attributes.style "overflow" "hidden"
+                         ]
+                            ++ attrs
+                        )
             )
         |> Maybe.withDefault gameWon
-        |> Layout.el
-            [ Html.Attributes.style "border-radius" "1rem"
-            , Html.Attributes.style "overflow" "hidden"
-            ]
+        |> Layout.el Layout.centered
 
 
 gamePos :

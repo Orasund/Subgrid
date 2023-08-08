@@ -1,11 +1,11 @@
 module Level exposing (..)
 
-import StaticArray.Index as Index exposing (Four, Index)
+import StaticArray.Index as Index exposing (Four, Index, Six)
 import StaticArray.Length as Length exposing (Length)
 
 
 type alias LevelAmount =
-    Four
+    Six
 
 
 type alias Level =
@@ -14,7 +14,7 @@ type alias Level =
 
 maxLevel : Length LevelAmount
 maxLevel =
-    Length.four
+    Length.six
 
 
 previous : Level -> Maybe Level

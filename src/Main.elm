@@ -307,7 +307,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Toggle ( x, y ) ->
-            ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
+            ( (if x >= 0 && x < Config.gridSize model.level && y >= 0 && y < Config.gridSize model.level then
                 case model.tileSelected of
                     Just a ->
                         placeModule model { moduleId = a.moduleId, rotation = a.rotation, pos = ( x, y ) }
