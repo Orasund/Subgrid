@@ -174,6 +174,7 @@ view model =
                     grid
                         |> View.tileSelect
                             { selected = model.tileSelected
+                            , editTile = LoadStage
                             , unselect = SelectTile Nothing
                             , game = model.game
                             , level = model.level

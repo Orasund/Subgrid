@@ -19,6 +19,7 @@ import View.Svg
 
 tileSelect :
     { selected : Maybe { moduleId : Int, rotation : Int }
+    , editTile : { level : Level, stage : Int } -> msg
     , unselect : msg
     , game : Maybe Game
     , level : Level
@@ -84,45 +85,66 @@ tileSelect args dict =
             , dict
                 |> Dict.toList
                 |> List.map
-                    (\( id, level ) ->
-                        List.range 0 3
-                            |> List.map
-                                (\rotate ->
-                                    level.grid
-                                        |> View.Svg.tile
-                                            { tileSize = Config.smallCellSize
-                                            , active =
-                                                \pos ->
-                                                    level.paths
-                                                        |> Dict.get (RelativePos.fromTuple pos)
-                                                        |> Maybe.map .origins
-                                                        |> Maybe.withDefault Set.empty
-                                                        |> Set.toList
-                                                        |> List.head
-                                                        |> (\originId -> { originId = originId })
-                                            , render = \_ -> View.Render.boxRender
-                                            , level = args.level
-                                            , background = Color.tileBackground
-                                            , cellToColor =
-                                                Cell.toColor
-                                                    { level =
-                                                        args.level
-                                                            |> Level.previous
-                                                            |> Maybe.withDefault Index.first
+                    (\( stageId, level ) ->
+                        (stageName
+                            { level =
+                                args.level
+                                    |> Level.previous
+                                    |> Maybe.withDefault Index.first
+                            , stage = stageId
+                            }
+                            |> Layout.text []
+                        )
+                            :: (List.range 0 3
+                                    |> List.map
+                                        (\rotate ->
+                                            level.grid
+                                                |> View.Svg.tile
+                                                    { tileSize = Config.smallCellSize
+                                                    , active =
+                                                        \pos ->
+                                                            level.paths
+                                                                |> Dict.get (RelativePos.fromTuple pos)
+                                                                |> Maybe.map .origins
+                                                                |> Maybe.withDefault Set.empty
+                                                                |> Set.toList
+                                                                |> List.head
+                                                                |> (\originId -> { originId = originId })
+                                                    , render = \_ -> View.Render.boxRender
+                                                    , level = args.level
+                                                    , background = Color.tileBackground
+                                                    , cellToColor =
+                                                        Cell.toColor
+                                                            { level =
+                                                                args.level
+                                                                    |> Level.previous
+                                                                    |> Maybe.withDefault Index.first
+                                                            }
                                                     }
-                                            }
-                                        |> Layout.el
-                                            [ Html.Attributes.style "transform"
-                                                ("rotate(" ++ String.fromInt (rotate * 90) ++ "deg)")
-                                            ]
-                                        |> Layout.el
-                                            (Layout.asButton
-                                                { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
-                                                , onPress = Just (args.selectTile { moduleId = id, rotation = rotate })
-                                                }
-                                            )
-                                )
-                            |> Layout.row [ Layout.gap 8 ]
+                                                |> Layout.el
+                                                    [ Html.Attributes.style "transform"
+                                                        ("rotate(" ++ String.fromInt (rotate * 90) ++ "deg)")
+                                                    ]
+                                                |> Layout.el
+                                                    (Layout.asButton
+                                                        { label = "Level " ++ String.fromInt stageId ++ "(" ++ String.fromInt rotate ++ ")"
+                                                        , onPress = Just (args.selectTile { moduleId = stageId, rotation = rotate })
+                                                        }
+                                                    )
+                                        )
+                               )
+                            ++ [ button
+                                    (args.editTile
+                                        { level =
+                                            args.level
+                                                |> Level.previous
+                                                |> Maybe.withDefault Index.first
+                                        , stage = stageId
+                                        }
+                                    )
+                                    "Change"
+                               ]
+                            |> Layout.row [ Layout.contentWithSpaceBetween, Layout.alignAtCenter ]
                     )
                 |> Layout.column [ Layout.gap 8 ]
             ]
@@ -248,7 +270,7 @@ tileGeneric args g cell =
                             activePos =
                                 c.sendsTo
                                     |> Dict.toList
-                                    |> List.map (Tuple.mapFirst (RelativePos.rotate args.level (4 - c.rotation)))
+                                    |> List.map (Tuple.mapFirst (RelativePos.rotate (Config.maxPos args.level) (4 - c.rotation)))
                                     |> List.concatMap
                                         (\( to, { originId } ) ->
                                             level.connections

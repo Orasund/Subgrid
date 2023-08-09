@@ -18,11 +18,13 @@ smallCellSize =
 
 
 maxPos level =
-    if level == Index.first then
-        1
+    { maxPos =
+        if level == Index.first then
+            1
 
-    else
-        gridSize (Level.previous level |> Maybe.withDefault Index.first)
+        else
+            gridSize (Level.previous level |> Maybe.withDefault Index.first)
+    }
 
 
 gridSize level =

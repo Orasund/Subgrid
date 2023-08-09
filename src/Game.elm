@@ -51,7 +51,7 @@ fromSave savedLevel =
         |> Dict.toList
         |> List.map (Tuple.mapFirst RelativePos.unsafeToTuple)
         |> Dict.fromList
-        |> Stage.fromDict
+        |> Stage.fromDict { gridSize = savedLevel.gridSize }
         |> fromStage
 
 
@@ -123,6 +123,7 @@ toSave level game =
     , paths = paths
     , grid = grid
     , level = level
+    , gridSize = game.stage.gridSize
     }
         |> Just
 
@@ -144,17 +145,17 @@ tick args game =
                             |> ConnectionCell
 
                     Target { id } ->
-                        RelativePos.list args.level
+                        RelativePos.list (Config.maxPos args.level)
                             |> List.map
                                 (\relPos ->
                                     { pos =
                                         relPos
-                                            |> RelativePos.toDir args.level
+                                            |> RelativePos.toDir (Config.maxPos args.level)
                                             |> Dir.addTo pos
                                     , from = relPos
                                     , to =
                                         relPos
-                                            |> RelativePos.reverse args.level
+                                            |> RelativePos.reverse (Config.maxPos args.level)
                                     }
                                 )
                             |> List.filterMap
@@ -209,7 +210,7 @@ update level modules game =
                         case
                             Dict.get
                                 (dir
-                                    |> RelativePos.toDir level
+                                    |> RelativePos.toDir (Config.maxPos level)
                                     |> Dir.addTo pos
                                 )
                                 stage.grid

@@ -10,10 +10,10 @@ type alias RelativePos =
     ( ( Int, Int ), String )
 
 
-list : Level -> List RelativePos
-list level =
-    List.range 0 3
-        |> List.concatMap (\i -> [ ( -1, i ), ( Config.maxPos level, i ), ( i, -1 ), ( i, Config.maxPos level ) ])
+list : { maxPos : Int } -> List RelativePos
+list args =
+    List.range 0 (args.maxPos - 1)
+        |> List.concatMap (\i -> [ ( -1, i ), ( args.maxPos, i ), ( i, -1 ), ( i, args.maxPos ) ])
         |> List.map fromTuple
 
 
@@ -22,21 +22,21 @@ fromTuple pos =
     ( pos, "RelativePos" )
 
 
-rotate : Level -> Int -> RelativePos -> RelativePos
-rotate level amount a =
+rotate : { maxPos : Int } -> Int -> RelativePos -> RelativePos
+rotate args amount a =
     List.range 0 (amount - 1)
-        |> List.foldl (\_ -> rotateClockwise level) a
+        |> List.foldl (\_ -> rotateClockwise args) a
 
 
-rotationMatrix : Level -> Dict RelativePos RelativePos
-rotationMatrix level =
-    List.range 0 (Config.maxPos level - 1)
+rotationMatrix : { maxPos : Int } -> Dict RelativePos RelativePos
+rotationMatrix args =
+    List.range 0 (args.maxPos - 1)
         |> List.map
             (\i ->
-                [ ( ( -1, i ), ( Config.maxPos level - 1 - i, -1 ) )
-                , ( ( i, -1 ), ( Config.maxPos level, i ) )
-                , ( ( Config.maxPos level, Config.maxPos level - 1 - i ), ( i, Config.maxPos level ) )
-                , ( ( i, Config.maxPos level ), ( -1, i ) )
+                [ ( ( -1, i ), ( args.maxPos - 1 - i, -1 ) )
+                , ( ( i, -1 ), ( args.maxPos, i ) )
+                , ( ( args.maxPos, args.maxPos - 1 - i ), ( i, args.maxPos ) )
+                , ( ( i, args.maxPos ), ( -1, i ) )
                 ]
             )
         |> List.concat
@@ -44,9 +44,9 @@ rotationMatrix level =
         |> Dict.fromList
 
 
-rotateClockwise : Level -> RelativePos -> RelativePos
-rotateClockwise level relPos =
-    case rotationMatrix level |> Dict.get relPos of
+rotateClockwise : { maxPos : Int } -> RelativePos -> RelativePos
+rotateClockwise args relPos =
+    case rotationMatrix args |> Dict.get relPos of
         Just pos ->
             pos
 
@@ -54,14 +54,14 @@ rotateClockwise level relPos =
             Debug.todo "tried rotating a center position"
 
 
-reverse : Level -> RelativePos -> RelativePos
-reverse level ( ( x, y ), _ ) =
+reverse : { maxPos : Int } -> RelativePos -> RelativePos
+reverse args ( ( x, y ), _ ) =
     let
         rev i =
             if i == -1 then
-                Config.maxPos level
+                args.maxPos
 
-            else if i == Config.maxPos level then
+            else if i == args.maxPos then
                 -1
 
             else
@@ -71,14 +71,14 @@ reverse level ( ( x, y ), _ ) =
         |> fromTuple
 
 
-toDir : Level -> RelativePos -> Dir
-toDir level ( ( x, y ), _ ) =
+toDir : { maxPos : Int } -> RelativePos -> Dir
+toDir args ( ( x, y ), _ ) =
     let
         minPos =
             -1
 
         maxPos =
-            Config.maxPos level
+            args.maxPos
     in
     if x == maxPos then
         Dir.new 0

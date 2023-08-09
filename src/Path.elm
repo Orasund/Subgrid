@@ -1,6 +1,7 @@
 module Path exposing (PathBuilder, build, toDict)
 
 import Cell exposing (Cell(..))
+import Config
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level)
@@ -41,7 +42,7 @@ stepThroughPath args =
                                         (\( _, v ) ->
                                             if v.originId == args.originId then
                                                 v.from
-                                                    |> RelativePos.toDir args.level
+                                                    |> RelativePos.toDir (Config.maxPos args.level)
                                                     |> Dir.addTo pos
                                                     |> Just
 
@@ -103,7 +104,7 @@ fromTarget level stage pos =
                         |> List.map
                             (\relativePos ->
                                 relativePos
-                                    |> RelativePos.toDir level
+                                    |> RelativePos.toDir (Config.maxPos level)
                                     |> Dir.addTo pos
                             )
 

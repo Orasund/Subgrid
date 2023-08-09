@@ -12,6 +12,7 @@ import StaticArray.Index as Index
 
 type alias Stage =
     { grid : Dict ( Int, Int ) Cell
+    , gridSize : Int
     , targets : Dict ( Int, Int ) Int
     , origins : Dict ( Int, Int ) Int
     }
@@ -27,12 +28,13 @@ type alias SavedStage =
             }
     , paths : Dict RelativePos { origins : Set Int }
     , grid : Dict RelativePos Cell
+    , gridSize : Int
     , level : Level
     }
 
 
-fromDict : Dict ( Int, Int ) Cell -> Stage
-fromDict dict =
+fromDict : { gridSize : Int } -> Dict ( Int, Int ) Cell -> Stage
+fromDict args dict =
     { grid = dict
     , targets =
         dict
@@ -60,6 +62,7 @@ fromDict dict =
                             Nothing
                 )
             |> Dict.fromList
+    , gridSize = args.gridSize
     }
 
 
@@ -101,7 +104,7 @@ parse rows =
             { cells = [], nextTargetId = 0, nextOriginid = 0 }
         |> .cells
         |> Dict.fromList
-        |> fromDict
+        |> fromDict { gridSize = rows |> List.length }
 
 
 computeActiveConnectionsGeneric :
@@ -120,23 +123,23 @@ computeActiveConnectionsGeneric level levels connection pos stage =
         |> List.filterMap
             (\( to, { from } ) ->
                 from
-                    |> RelativePos.toDir level
+                    |> RelativePos.toDir (Config.maxPos level)
                     |> Dir.rotate connection.rotation
                     |> Dir.addTo pos
                     |> sendsEnergy
                         { to =
                             from
-                                |> RelativePos.reverse level
-                                |> RelativePos.rotate level connection.rotation
+                                |> RelativePos.reverse (Config.maxPos level)
+                                |> RelativePos.rotate (Config.maxPos level) connection.rotation
                         }
                         stage
                     |> Maybe.map
                         (\{ originId } ->
                             ( to
-                                |> RelativePos.rotate level connection.rotation
+                                |> RelativePos.rotate (Config.maxPos level) connection.rotation
                             , { from =
                                     from
-                                        |> RelativePos.rotate level connection.rotation
+                                        |> RelativePos.rotate (Config.maxPos level) connection.rotation
                               , originId = originId
                               }
                             )
@@ -157,10 +160,10 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
         [ dir1, dir2 ] ->
             case
                 dir1
-                    |> RelativePos.toDir level
+                    |> RelativePos.toDir (Config.maxPos level)
                     |> Dir.addTo pos
                     |> sendsEnergy
-                        { to = dir1 |> RelativePos.reverse level
+                        { to = dir1 |> RelativePos.reverse (Config.maxPos level)
                         }
                         stage
             of
@@ -170,10 +173,10 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                 Nothing ->
                     case
                         dir2
-                            |> RelativePos.toDir level
+                            |> RelativePos.toDir (Config.maxPos level)
                             |> Dir.addTo pos
                             |> sendsEnergy
-                                { to = dir2 |> RelativePos.reverse level
+                                { to = dir2 |> RelativePos.reverse (Config.maxPos level)
                                 }
                                 stage
                     of
@@ -184,19 +187,19 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                             []
 
         _ ->
-            RelativePos.list level
+            RelativePos.list (Config.maxPos level)
                 |> List.filterMap
                     (\fromDir ->
                         fromDir
-                            |> RelativePos.toDir level
+                            |> RelativePos.toDir (Config.maxPos level)
                             |> Dir.addTo pos
                             |> sendsEnergy
-                                { to = fromDir |> RelativePos.reverse level
+                                { to = fromDir |> RelativePos.reverse (Config.maxPos level)
                                 }
                                 stage
                             |> Maybe.map
                                 (\{ originId } ->
-                                    ( fromDir |> RelativePos.reverse level
+                                    ( fromDir |> RelativePos.reverse (Config.maxPos level)
                                     , { from = fromDir, originId = originId }
                                     )
                                 )
