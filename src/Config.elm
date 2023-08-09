@@ -1,7 +1,5 @@
 module Config exposing (..)
 
-import Level
-import StaticArray exposing (StaticArray)
 import StaticArray.Index as Index
 
 
@@ -15,16 +13,6 @@ midCellSize =
 
 smallCellSize =
     32
-
-
-maxPos level =
-    { maxPos =
-        if level == Index.first then
-            1
-
-        else
-            gridSize (Level.previous level |> Maybe.withDefault Index.first)
-    }
 
 
 gridSize level =

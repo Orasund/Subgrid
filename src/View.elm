@@ -258,10 +258,10 @@ tileLevel1 args cell =
 
 
 tileGeneric : { level : Level, cellSize : Int } -> Dict Int SavedStage -> Cell -> Html msg
-tileGeneric args g cell =
+tileGeneric args stages cell =
     case cell of
         ConnectionCell c ->
-            g
+            stages
                 |> Dict.get c.moduleId
                 |> Maybe.map
                     (\level ->
@@ -270,7 +270,7 @@ tileGeneric args g cell =
                             activePos =
                                 c.sendsTo
                                     |> Dict.toList
-                                    |> List.map (Tuple.mapFirst (RelativePos.rotate (Config.maxPos args.level) (4 - c.rotation)))
+                                    |> List.map (Tuple.mapFirst (RelativePos.rotate { maxPos = level.gridSize } (4 - c.rotation)))
                                     |> List.concatMap
                                         (\( to, { originId } ) ->
                                             level.connections

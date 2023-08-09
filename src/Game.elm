@@ -55,12 +55,12 @@ fromSave savedLevel =
         |> fromStage
 
 
-toSave : Level -> Game -> Maybe SavedStage
-toSave level game =
+toSave : { level : Level, maxPos : Int } -> Game -> Maybe SavedStage
+toSave args game =
     let
         list =
             game.stage
-                |> Path.build level
+                |> Path.build args
 
         connections :
             Dict
@@ -122,7 +122,7 @@ toSave level game =
     { connections = connections
     , paths = paths
     , grid = grid
-    , level = level
+    , level = args.level
     , gridSize = game.stage.gridSize
     }
         |> Just
@@ -131,10 +131,15 @@ toSave level game =
 tick :
     { computeActiveConnections : ( ( Int, Int ), Connection ) -> Stage -> Connection
     , level : Level
+    , maxPos : Int
     }
     -> Game
     -> ( Game, Bool )
 tick args game =
+    let
+        maxPos =
+            { maxPos = args.maxPos }
+    in
     game.stage.grid
         |> Dict.map
             (\pos cell ->
@@ -145,17 +150,17 @@ tick args game =
                             |> ConnectionCell
 
                     Target { id } ->
-                        RelativePos.list (Config.maxPos args.level)
+                        RelativePos.list maxPos
                             |> List.map
                                 (\relPos ->
                                     { pos =
                                         relPos
-                                            |> RelativePos.toDir (Config.maxPos args.level)
+                                            |> RelativePos.toDir maxPos
                                             |> Dir.addTo pos
                                     , from = relPos
                                     , to =
                                         relPos
-                                            |> RelativePos.reverse (Config.maxPos args.level)
+                                            |> RelativePos.reverse maxPos
                                     }
                                 )
                             |> List.filterMap
@@ -192,15 +197,31 @@ tick args game =
             )
         |> (\d ->
                 ( { game | stage = game.stage |> (\stage -> { stage | grid = d }) }
-                    |> (\g -> { g | isConnected = g.stage |> Path.build args.level |> Path.toDict |> Debug.log "isConnected" })
+                    |> (\g ->
+                            { g
+                                | isConnected =
+                                    g.stage
+                                        |> Path.build
+                                            { level = args.level
+                                            , maxPos = args.maxPos
+                                            }
+                                        |> Path.toDict
+                            }
+                       )
                 , Dict.toList d /= Dict.toList game.stage.grid
                 )
            )
 
 
 update : Level -> Dict Int SavedStage -> Game -> ( Game, Bool )
-update level modules game =
+update level stages game =
     let
+        maxPos =
+            stages
+                |> Dict.get 0
+                |> Maybe.map .gridSize
+                |> Maybe.withDefault 1
+
         neighborsDirLevel1 pos stage =
             Dir.list
                 |> List.map (Dir.addTo ( 0, 0 ))
@@ -210,7 +231,7 @@ update level modules game =
                         case
                             Dict.get
                                 (dir
-                                    |> RelativePos.toDir (Config.maxPos level)
+                                    |> RelativePos.toDir { maxPos = maxPos }
                                     |> Dir.addTo pos
                                 )
                                 stage.grid
@@ -232,13 +253,15 @@ update level modules game =
         tick
             { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
             , level = level
+            , maxPos = maxPos
             }
             game
 
     else
         tick
-            { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric level modules a pos
+            { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric stages a pos
             , level = level
+            , maxPos = maxPos
             }
             game
 

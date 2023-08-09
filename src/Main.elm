@@ -79,10 +79,19 @@ init () =
 
 saveLevel : Model -> Model
 saveLevel model =
+    let
+        maxPos =
+            model.levels
+                |> Dict.get (model.level |> Level.previous |> Maybe.withDefault Index.first |> Level.toString)
+                |> Maybe.withDefault Dict.empty
+                |> Dict.get 0
+                |> Maybe.map .gridSize
+                |> Maybe.withDefault 1
+    in
     { model
         | levels =
             model.game
-                |> Maybe.andThen (Game.toSave model.level)
+                |> Maybe.andThen (Game.toSave { level = model.level, maxPos = maxPos })
                 |> Maybe.map
                     (\savedGame ->
                         model.levels

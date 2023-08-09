@@ -7,7 +7,6 @@ import Dir
 import Level exposing (Level)
 import RelativePos exposing (RelativePos)
 import Set exposing (Set)
-import StaticArray.Index as Index
 
 
 type alias Stage =
@@ -104,66 +103,69 @@ parse rows =
             { cells = [], nextTargetId = 0, nextOriginid = 0 }
         |> .cells
         |> Dict.fromList
-        |> fromDict { gridSize = rows |> List.length }
+        |> fromDict { gridSize = List.length rows - 2 }
 
 
 computeActiveConnectionsGeneric :
-    Level
-    -> Dict Int SavedStage
+    Dict Int SavedStage
     -> Connection
     -> ( Int, Int )
     -> Stage
     -> Connection
-computeActiveConnectionsGeneric level levels connection pos stage =
+computeActiveConnectionsGeneric levels connection pos stage =
     levels
         |> Dict.get connection.moduleId
-        |> Maybe.map .connections
-        |> Maybe.withDefault Dict.empty
-        |> Dict.toList
-        |> List.filterMap
-            (\( to, { from } ) ->
-                from
-                    |> RelativePos.toDir (Config.maxPos level)
-                    |> Dir.rotate connection.rotation
-                    |> Dir.addTo pos
-                    |> sendsEnergy
-                        { to =
+        |> Maybe.map
+            (\savedStage ->
+                let
+                    maxPos =
+                        { maxPos = savedStage.gridSize }
+                in
+                savedStage.connections
+                    |> Dict.toList
+                    |> List.filterMap
+                        (\( to, { from } ) ->
                             from
-                                |> RelativePos.reverse (Config.maxPos level)
-                                |> RelativePos.rotate (Config.maxPos level) connection.rotation
-                        }
-                        stage
-                    |> Maybe.map
-                        (\{ originId } ->
-                            ( to
-                                |> RelativePos.rotate (Config.maxPos level) connection.rotation
-                            , { from =
-                                    from
-                                        |> RelativePos.rotate (Config.maxPos level) connection.rotation
-                              , originId = originId
-                              }
-                            )
+                                |> RelativePos.toDir maxPos
+                                |> Dir.rotate connection.rotation
+                                |> Dir.addTo pos
+                                |> sendsEnergy
+                                    { to =
+                                        from
+                                            |> RelativePos.reverse maxPos
+                                            |> RelativePos.rotate maxPos connection.rotation
+                                    }
+                                    stage
+                                |> Maybe.map
+                                    (\{ originId } ->
+                                        ( to
+                                            |> RelativePos.rotate maxPos connection.rotation
+                                        , { from = from |> RelativePos.rotate maxPos connection.rotation
+                                          , originId = originId
+                                          }
+                                        )
+                                    )
                         )
+                    |> Dict.fromList
             )
-        |> Dict.fromList
+        |> Maybe.withDefault Dict.empty
         |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
 computeActiveConnectionsLv1 : List RelativePos -> ( ( Int, Int ), Connection ) -> Stage -> Connection
 computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
     let
-        level : Level
-        level =
-            Index.first
+        maxPos =
+            { maxPos = stage.gridSize }
     in
     (case neighborsDir of
         [ dir1, dir2 ] ->
             case
                 dir1
-                    |> RelativePos.toDir (Config.maxPos level)
+                    |> RelativePos.toDir { maxPos = stage.gridSize }
                     |> Dir.addTo pos
                     |> sendsEnergy
-                        { to = dir1 |> RelativePos.reverse (Config.maxPos level)
+                        { to = dir1 |> RelativePos.reverse maxPos
                         }
                         stage
             of
@@ -173,10 +175,10 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                 Nothing ->
                     case
                         dir2
-                            |> RelativePos.toDir (Config.maxPos level)
+                            |> RelativePos.toDir maxPos
                             |> Dir.addTo pos
                             |> sendsEnergy
-                                { to = dir2 |> RelativePos.reverse (Config.maxPos level)
+                                { to = dir2 |> RelativePos.reverse maxPos
                                 }
                                 stage
                     of
@@ -187,19 +189,19 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                             []
 
         _ ->
-            RelativePos.list (Config.maxPos level)
+            RelativePos.list maxPos
                 |> List.filterMap
                     (\fromDir ->
                         fromDir
-                            |> RelativePos.toDir (Config.maxPos level)
+                            |> RelativePos.toDir maxPos
                             |> Dir.addTo pos
                             |> sendsEnergy
-                                { to = fromDir |> RelativePos.reverse (Config.maxPos level)
+                                { to = fromDir |> RelativePos.reverse maxPos
                                 }
                                 stage
                             |> Maybe.map
                                 (\{ originId } ->
-                                    ( fromDir |> RelativePos.reverse (Config.maxPos level)
+                                    ( fromDir |> RelativePos.reverse maxPos
                                     , { from = fromDir, originId = originId }
                                     )
                                 )

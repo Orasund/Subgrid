@@ -1,9 +1,7 @@
 module RelativePos exposing (..)
 
-import Config
 import Dict exposing (Dict)
 import Dir exposing (Dir)
-import Level exposing (Level)
 
 
 type alias RelativePos =
@@ -93,7 +91,7 @@ toDir args ( ( x, y ), _ ) =
         Dir.new 3
 
     else
-        Debug.todo ("trying to convert " ++ String.fromInt x ++ "," ++ String.fromInt y ++ "with maxPos " ++ String.fromInt maxPos)
+        Debug.todo ("trying to convert " ++ String.fromInt x ++ "," ++ String.fromInt y ++ " with maxPos " ++ String.fromInt maxPos)
 
 
 unsafeToTuple : RelativePos -> ( Int, Int )

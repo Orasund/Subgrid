@@ -1,7 +1,6 @@
 module Path exposing (PathBuilder, build, toDict)
 
 import Cell exposing (Cell(..))
-import Config
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level)
@@ -24,6 +23,7 @@ stepThroughPath :
     { level : Level
     , grid : Dict ( Int, Int ) Cell
     , originId : Int
+    , maxPos : Int
     }
     -> Maybe { pos : ( Int, Int ), path : List ( Int, Int ) }
     -> Maybe { pos : ( Int, Int ), path : List ( Int, Int ) }
@@ -42,7 +42,7 @@ stepThroughPath args =
                                         (\( _, v ) ->
                                             if v.originId == args.originId then
                                                 v.from
-                                                    |> RelativePos.toDir (Config.maxPos args.level)
+                                                    |> RelativePos.toDir { maxPos = args.maxPos }
                                                     |> Dir.addTo pos
                                                     |> Just
 
@@ -93,9 +93,9 @@ toDict list =
             Dict.empty
 
 
-fromTarget : Level -> Stage -> ( Int, Int ) -> Maybe { pos : ( Int, Int ), targetId : Int, from : List ( Int, Int ), originId : Int }
-fromTarget level stage pos =
-    case stage.grid |> Dict.get pos of
+fromTarget : { level : Level, stage : Stage, maxPos : Int } -> ( Int, Int ) -> Maybe { pos : ( Int, Int ), targetId : Int, from : List ( Int, Int ), originId : Int }
+fromTarget args pos =
+    case args.stage.grid |> Dict.get pos of
         Just (Target target) ->
             let
                 from =
@@ -104,7 +104,7 @@ fromTarget level stage pos =
                         |> List.map
                             (\relativePos ->
                                 relativePos
-                                    |> RelativePos.toDir (Config.maxPos level)
+                                    |> RelativePos.toDir { maxPos = args.maxPos }
                                     |> Dir.addTo pos
                             )
 
@@ -136,11 +136,11 @@ fromTarget level stage pos =
             Nothing
 
 
-build : Level -> Stage -> PathBuilder
-build level stage =
+build : { level : Level, maxPos : Int } -> Stage -> PathBuilder
+build args stage =
     stage.targets
         |> Dict.keys
-        |> List.filterMap (fromTarget level stage)
+        |> List.filterMap (fromTarget { level = args.level, stage = stage, maxPos = args.maxPos })
         |> List.concatMap
             (\target ->
                 target.from
@@ -152,9 +152,10 @@ build level stage =
                                 |> List.foldl
                                     (\_ ->
                                         stepThroughPath
-                                            { level = level
+                                            { level = args.level
                                             , grid = stage.grid
                                             , originId = target.originId
+                                            , maxPos = args.maxPos
                                             }
                                     )
                                     (Just
