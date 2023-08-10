@@ -33,6 +33,7 @@ type alias Model =
     , level : Level
     , dialog : Maybe Dialog
     , tileSelected : Maybe { moduleId : Int, rotation : Int }
+    , solved : Bool
     }
 
 
@@ -64,12 +65,13 @@ init () =
       , stage = 1
       , dialog =
             [ "Power all targets (circles) to solve the level."
-            , "Connect the power (red squares) with the target by clicking on the tiles between."
+            , "Connect the power with the target by clicking on the tiles between."
             , "Each level has 2-5 possible solutions."
             ]
                 |> Tutorial
                 |> Just
       , tileSelected = Nothing
+      , solved = False
       }
     , Cmd.none
     )
@@ -377,18 +379,25 @@ update msg model =
                                     |> Tuple.mapFirst Just
                             )
                         |> Maybe.withDefault ( Nothing, False )
+
+                solved =
+                    not updating
+                        && (newGrid
+                                |> Maybe.map (Game.isSolved model.level)
+                                |> Maybe.withDefault False
+                           )
             in
             ( { model
                 | game = newGrid
                 , updating = updating
+                , solved =
+                    if not updating then
+                        solved
+
+                    else
+                        model.solved
                 , dialog =
-                    if
-                        not updating
-                            && (newGrid
-                                    |> Maybe.map (Game.isSolved model.level)
-                                    |> Maybe.withDefault False
-                               )
-                    then
+                    if not model.solved && solved then
                         Just LevelComplete
 
                     else

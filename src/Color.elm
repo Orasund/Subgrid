@@ -74,7 +74,7 @@ primaryColors =
       , --green
         "#23bf24"
       , --orange
-        "#e3b464"
+        "#f4ad36"
       , --türkis
         "#0096c0"
       , --violett
