@@ -2,14 +2,15 @@ module View.Render exposing (..)
 
 import Cell exposing (Cell(..))
 import Color
+import Config exposing (powerStrengths)
 import Dict
 import Svg exposing (Svg)
 import Svg.Attributes
 import View.Svg exposing (RenderFunction)
 
 
-cellRender : Cell -> RenderFunction msg
-cellRender cell =
+cellRender : { powerStrengths : Int } -> Cell -> RenderFunction msg
+cellRender args cell =
     case cell of
         ConnectionCell _ ->
             boxRender
@@ -25,7 +26,7 @@ cellRender cell =
                 [ _ ] ->
                     targetRender
                         { secondaryColor = Color.wallColor
-                        , variant = id
+                        , variant = args.powerStrengths
                         , small = False
                         , fill = True
                         }
@@ -33,7 +34,7 @@ cellRender cell =
                 _ ->
                     targetRender
                         { secondaryColor = Color.wallColor
-                        , variant = id
+                        , variant = args.powerStrengths
                         , small = False
                         , fill = False
                         }
@@ -66,61 +67,52 @@ targetRender { secondaryColor, variant, small, fill } args =
 
             else
                 [ Svg.Attributes.strokeWidth
-                    (size / 2 |> String.fromFloat)
+                    (size / 3 |> String.fromFloat)
                 , Svg.Attributes.stroke secondaryColor
                 , Svg.Attributes.fill "none"
                 ]
     in
-    Svg.g
-        []
-        [ Svg.rect
-            [ Svg.Attributes.width (args.size |> String.fromInt)
-            , Svg.Attributes.height (args.size |> String.fromInt)
-            , Svg.Attributes.fill args.color
-            , Svg.Attributes.mask "url(#no-power)"
-            , Svg.Attributes.x (x |> String.fromInt)
-            , Svg.Attributes.y (y |> String.fromInt)
-            ]
-            []
-        , case 0 of
-            2 ->
-                Svg.path
-                    (Svg.Attributes.d
-                        (("M "
-                            ++ (toFloat x + toFloat args.size / 2 |> String.fromFloat)
-                            ++ " "
-                            ++ (toFloat y + toFloat args.size / 2 - size |> String.fromFloat)
-                            ++ ", "
-                         )
-                            ++ ("l " ++ (size |> String.fromFloat) ++ " " ++ (size * 2 |> String.fromFloat) ++ ", ")
-                            ++ ("l " ++ (-size * 2 |> String.fromFloat) ++ " 0")
-                            ++ "Z"
-                        )
-                        :: baseattrs
-                    )
-                    []
-
-            1 ->
-                Svg.rect
-                    ([ Svg.Attributes.x (toFloat x + toFloat args.size / 2 - size |> String.fromFloat)
-                     , Svg.Attributes.y (toFloat y + toFloat args.size / 2 - size |> String.fromFloat)
-                     , Svg.Attributes.width (size * 2 |> String.fromFloat)
-                     , Svg.Attributes.height (size * 2 |> String.fromFloat)
-                     ]
-                        ++ baseattrs
-                    )
-                    []
-
-            _ ->
-                Svg.circle
-                    ([ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
-                     , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
-                     , Svg.Attributes.r (size |> String.fromFloat)
-                     ]
-                        ++ baseattrs
-                    )
-                    []
+    Svg.rect
+        [ Svg.Attributes.width (args.size |> String.fromInt)
+        , Svg.Attributes.height (args.size |> String.fromInt)
+        , Svg.Attributes.fill args.color
+        , Svg.Attributes.mask "url(#no-power)"
+        , Svg.Attributes.x (x |> String.fromInt)
+        , Svg.Attributes.y (y |> String.fromInt)
         ]
+        []
+        :: (case variant of
+                2 ->
+                    [ Svg.circle
+                        ([ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.r (size |> String.fromFloat)
+                         ]
+                            ++ baseattrs
+                        )
+                        []
+                    , Svg.circle
+                        ([ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.r (size / 2 |> String.fromFloat)
+                         ]
+                            ++ baseattrs
+                        )
+                        []
+                    ]
+
+                _ ->
+                    [ Svg.circle
+                        ([ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+                         , Svg.Attributes.r (size |> String.fromFloat)
+                         ]
+                            ++ baseattrs
+                        )
+                        []
+                    ]
+           )
+        |> Svg.g []
 
 
 boxRender : { pos : ( Int, Int ), color : String, size : Int } -> Svg msg
