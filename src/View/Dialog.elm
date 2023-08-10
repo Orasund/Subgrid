@@ -38,9 +38,8 @@ tileSelect args game =
     [ "Select Tile" |> View.cardTitle
     , "Select a tile you want to place" |> Layout.text []
     , args.level
-        |> Debug.log "level"
         |> Level.previous
-        |> Maybe.andThen (\level -> game.levels |> Debug.log "levels" |> Dict.get (Level.toString level))
+        |> Maybe.andThen (\level -> game.levels |> Dict.get (Level.toString level))
         |> Maybe.withDefault Dict.empty
         |> Dict.toList
         |> List.map
@@ -148,15 +147,15 @@ levelSolved args =
     , [ View.button args.dismiss "Dismiss"
       , View.primaryButton args.nextStage "Next Level"
       ]
-        |> Layout.row [ Layout.gap 8 ]
+        |> Layout.row [ Layout.contentWithSpaceBetween ]
     ]
         |> (\list -> { content = list, dismiss = Just args.dismiss })
 
 
 tutorial : { message : List String, dismiss : msg } -> DialogHtml msg
 tutorial args =
-    [ "How to Play" |> View.cardTitle
+    [ "Hint" |> View.cardTitle
     , args.message |> List.map (Layout.text []) |> Layout.column [ Layout.gap 8 ]
     , View.primaryButton args.dismiss "Got it"
     ]
-        |> (\list -> { content = list, dismiss = Just args.dismiss })
+        |> (\list -> { content = list, dismiss = Nothing })

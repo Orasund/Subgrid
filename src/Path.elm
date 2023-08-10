@@ -42,7 +42,6 @@ stepThroughPath args =
                                         (\( _, v ) ->
                                             if v.originId == args.originId then
                                                 v.from
-                                                    |> Debug.log "in stepThroughPath"
                                                     |> RelativePos.toDir { maxPos = args.maxPos }
                                                     |> Dir.addTo pos
                                                     |> Just
@@ -105,7 +104,6 @@ fromTarget args pos =
                         |> List.map
                             (\relativePos ->
                                 relativePos
-                                    |> Debug.log "in fromTarget"
                                     |> RelativePos.toDir { maxPos = args.maxPos }
                                     |> Dir.addTo pos
                             )

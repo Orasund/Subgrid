@@ -26,8 +26,5 @@ powerStrengths level =
         2 ->
             1
 
-        3 ->
-            1
-
         _ ->
             2

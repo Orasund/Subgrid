@@ -10,9 +10,10 @@ import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
-import Level exposing (Level)
+import Level exposing (Level, tutorials)
 import Platform.Cmd as Cmd
 import Stage exposing (SavedStage)
+import StaticArray
 import StaticArray.Index as Index
 import Time
 import View
@@ -64,10 +65,8 @@ init () =
       , level = level
       , stage = 1
       , dialog =
-            [ "Power all targets (circles) to solve the level."
-            , "Connect the power with the target by clicking on the tiles between."
-            , "Each level has 2-5 possible solutions."
-            ]
+            tutorials
+                |> StaticArray.get level
                 |> Tutorial
                 |> Just
       , tileSelected = Nothing
@@ -77,7 +76,7 @@ init () =
     )
 
 
-loadStage : { stage : Int, level : Level } -> Model -> Maybe Model
+loadStage : { stage : Int, level : Level } -> Model -> Maybe { model : Model, generated : Bool }
 loadStage args model =
     model.game
         |> Maybe.andThen
@@ -87,31 +86,29 @@ loadStage args model =
                     |> Maybe.withDefault Dict.empty
                     |> Dict.get args.stage
                     |> Maybe.map Stage.fromSave
-                    |> Maybe.map Just
-                    |> Maybe.withDefault (Game.Generate.new args)
+                    |> Maybe.map (\stage -> Just ( stage, False ))
+                    |> Maybe.withDefault (Game.Generate.new args |> Maybe.map (\stage -> ( stage, True )))
                     |> Maybe.map
-                        (\stage ->
-                            { model
-                                | game = game |> Game.loadStage stage |> Just
-                                , level = args.level
-                                , stage = args.stage
-                                , dialog = Nothing
+                        (\( stage, generated ) ->
+                            { model =
+                                { model
+                                    | game = game |> Game.loadStage stage |> Just
+                                    , level = args.level
+                                    , stage = args.stage
+                                    , dialog =
+                                        if args.stage == 1 && generated then
+                                            Level.tutorials
+                                                |> StaticArray.get args.level
+                                                |> Tutorial
+                                                |> Just
+
+                                        else
+                                            Nothing
+                                }
+                            , generated = generated
                             }
                         )
             )
-
-
-generateStage : { stage : Int, level : Level } -> Model -> Model
-generateStage args model =
-    { model
-        | game =
-            Maybe.map2 Game.loadStage
-                (Game.Generate.new args)
-                model.game
-        , level = args.level
-        , stage = args.stage
-        , dialog = Nothing
-    }
 
 
 view : Model -> Html Msg
@@ -124,7 +121,7 @@ view model =
             View.primaryButton (SetDialog (Just LevelComplete)) "Done"
 
          else
-            Layout.none
+            View.button (SetDialog (Just (Tutorial (Level.tutorials |> StaticArray.get model.level)))) "Hint"
         )
             |> View.topBar
                 { level = model.level
@@ -153,6 +150,7 @@ view model =
             , Html.Attributes.style "padding" "1rem"
             , Html.Attributes.style "width" ((Config.bigCellSize * 6 |> String.fromInt) ++ "px")
             ]
+        |> List.singleton
     , model.dialog
         |> Maybe.andThen
             (\dialog ->
@@ -197,39 +195,47 @@ view model =
             )
         |> Maybe.map
             (\{ content, dismiss } ->
-                content
+                [ Layout.el
+                    (Layout.centered
+                        ++ [ Html.Attributes.style "width" "100%"
+                           , Html.Attributes.style "height" "100%"
+                           , Html.Attributes.style "top" "0"
+                           , Html.Attributes.style "left" "0"
+                           , Html.Attributes.style "position" "absolute"
+                           , Html.Attributes.style "backdrop-filter" "blur(2px)"
+                           ]
+                        ++ Layout.asButton
+                            { label = "Dismiss"
+                            , onPress = dismiss
+                            }
+                    )
+                    Layout.none
+                , content
                     |> View.card
-                        Layout.centered
-                    |> Layout.el
-                        (Layout.centered
-                            ++ [ Html.Attributes.style "width" "100%"
-                               , Html.Attributes.style "height" "100%"
-                               , Html.Attributes.style "position" "absolute"
-                               , Html.Attributes.style "backdrop-filter" "blur(2px)"
-                               ]
-                            ++ Layout.asButton
-                                { label = "Dismiss"
-                                , onPress = dismiss
-                                }
-                        )
+                        [ Html.Attributes.style "position" "absolute"
+                        ]
+                ]
             )
-        |> Maybe.withDefault Layout.none
-    , Html.node "meta"
-        [ Html.Attributes.name "viewport"
-        , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
-        ]
-        []
-    , View.stylesheet
-    ]
-        |> Html.div
-            [ Layout.asEl
-            , Html.Attributes.style "position" "relative"
-            , Html.Attributes.style "color" Color.fontColor
-            , Html.Attributes.style "background" (Color.background model.level)
-            , Html.Attributes.style "font-family" "sans-serif"
-            , Html.Attributes.style "height" "100%"
-            , Layout.contentCentered
+        |> Maybe.withDefault []
+    , [ Html.node "meta"
+            [ Html.Attributes.name "viewport"
+            , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
             ]
+            []
+      , View.stylesheet
+      ]
+    ]
+        |> List.concat
+        |> Html.div
+            ([ Layout.asEl
+             , Html.Attributes.style "position" "relative"
+             , Html.Attributes.style "color" Color.fontColor
+             , Html.Attributes.style "background" (Color.background model.level)
+             , Html.Attributes.style "font-family" "sans-serif"
+             , Html.Attributes.style "height" "100%"
+             ]
+                ++ Layout.centered
+            )
 
 
 placeModule model { moduleId, rotation, pos } =
@@ -263,12 +269,12 @@ findNextStage m =
             case
                 m |> loadStage { level = m.level, stage = m.stage + 1 }
             of
-                Just a ->
-                    if a.game |> isValid m.level then
+                Just result ->
+                    if result.model.game |> isValid m.level then
                         { m | stage = m.stage + 1 } |> findNextStage
 
                     else
-                        a
+                        result.model
 
                 Nothing ->
                     m.level
@@ -276,12 +282,16 @@ findNextStage m =
                         |> Maybe.map
                             (\level ->
                                 case m |> loadStage { level = level, stage = 1 } of
-                                    Just a ->
-                                        if a.game |> isValid level then
-                                            { m | level = level, stage = 1 } |> findNextStage
+                                    Just result ->
+                                        if result.model.game |> isValid level then
+                                            { m
+                                                | level = level
+                                                , stage = 1
+                                            }
+                                                |> findNextStage
 
                                         else
-                                            a
+                                            result.model
 
                                     Nothing ->
                                         { m | game = Nothing }
@@ -391,7 +401,10 @@ update msg model =
                 | game = newGrid
                 , updating = updating
                 , solved =
-                    if not updating then
+                    if model.level == Index.first then
+                        False
+
+                    else if not updating then
                         solved
 
                     else
@@ -422,10 +435,11 @@ update msg model =
         LoadStage level ->
             ( case model |> loadStage level of
                 Just a ->
-                    a
+                    a.model
 
                 Nothing ->
-                    model |> generateStage level
+                    model
+              -- |> generateStage level
             , Cmd.none
             )
 

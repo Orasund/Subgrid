@@ -26,11 +26,18 @@ wallColor =
 
 laserColor : Level -> Int -> String
 laserColor level originId =
-    "color-mix(in lch,"
-        ++ (primaryColors |> StaticArray.get level)
-        ++ ", color-mix(in lch, white "
-        ++ String.fromInt (originId * 50)
-        ++ "%,black) 20% )"
+    case originId of
+        0 ->
+            primaryColors |> StaticArray.get level
+
+        1 ->
+            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 10%)"
+
+        2 ->
+            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 20%)"
+
+        _ ->
+            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 30%)"
 
 
 inactiveLaser : Level -> String
