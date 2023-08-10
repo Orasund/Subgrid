@@ -218,9 +218,12 @@ update level stages game =
     let
         maxPos =
             stages
-                |> Dict.get 0
-                |> Maybe.map .gridSize
+                |> Debug.log "stages"
+                |> Dict.toList
+                |> List.head
+                |> Maybe.map (\( _, { gridSize } ) -> gridSize)
                 |> Maybe.withDefault 1
+                |> Debug.log "maxPos"
 
         neighborsDirLevel1 pos stage =
             Dir.list

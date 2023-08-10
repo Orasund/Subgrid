@@ -21,6 +21,7 @@ tile :
     , level : Level
     , background : String
     , cellToColor : Maybe { originId : Maybe Int } -> Cell -> String
+    , gridSize : Int
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -38,7 +39,7 @@ tile args dict =
             )
         |> fromPixels
             { tileSize = args.tileSize
-            , size = 2 + Config.gridSize (Level.previous args.level |> Maybe.withDefault Index.first)
+            , size = 2 + args.gridSize
             , background = args.background
             }
 

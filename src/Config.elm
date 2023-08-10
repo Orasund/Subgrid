@@ -15,24 +15,6 @@ smallCellSize =
     32
 
 
-gridSize level =
-    case level |> Index.toInt of
-        0 ->
-            1
-
-        1 ->
-            2
-
-        2 ->
-            2
-
-        3 ->
-            3
-
-        _ ->
-            4
-
-
 powerStrengths level =
     case level |> Index.toInt of
         0 ->

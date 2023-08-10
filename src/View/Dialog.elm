@@ -65,6 +65,7 @@ tileSelect args dict =
                                         Cell.toColor
                                             { level = Level.previous args.level |> Maybe.withDefault Index.first
                                             }
+                                    , gridSize = level.gridSize
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"

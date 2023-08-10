@@ -84,8 +84,9 @@ saveLevel model =
             model.levels
                 |> Dict.get (model.level |> Level.previous |> Maybe.withDefault Index.first |> Level.toString)
                 |> Maybe.withDefault Dict.empty
-                |> Dict.get 0
-                |> Maybe.map .gridSize
+                |> Dict.toList
+                |> List.head
+                |> Maybe.map (\( _, { gridSize } ) -> gridSize)
                 |> Maybe.withDefault 1
     in
     { model
@@ -317,7 +318,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Toggle ( x, y ) ->
-            ( (if x >= 0 && x < Config.gridSize model.level && y >= 0 && y < Config.gridSize model.level then
+            let
+                gridSize =
+                    model.game
+                        |> Maybe.map (\{ stage } -> stage.gridSize)
+                        |> Maybe.withDefault 1
+            in
+            ( (if x >= 0 && x < gridSize && y >= 0 && y < gridSize then
                 case model.tileSelected of
                     Just a ->
                         placeModule model { moduleId = a.moduleId, rotation = a.rotation, pos = ( x, y ) }

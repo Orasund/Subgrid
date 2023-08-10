@@ -62,6 +62,7 @@ tileSelect args dict =
                                                     |> Level.previous
                                                     |> Maybe.withDefault Index.first
                                             }
+                                    , gridSize = level.gridSize
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"
@@ -120,6 +121,7 @@ tileSelect args dict =
                                                                     |> Level.previous
                                                                     |> Maybe.withDefault Index.first
                                                             }
+                                                    , gridSize = level.gridSize
                                                     }
                                                 |> Layout.el
                                                     [ Html.Attributes.style "transform"
@@ -198,6 +200,7 @@ savedLevels args fun dict =
                         , level = args.level
                         , background = Color.tileBackground
                         , cellToColor = Cell.toColor { level = args.level }
+                        , gridSize = level.gridSize
                         }
                 , Layout.text [] (stageName { level = args.level, stage = id })
                 ]
@@ -293,6 +296,7 @@ tileGeneric args stages cell =
                                 , level = args.level
                                 , background = Color.tileBackground
                                 , cellToColor = Cell.toColor { level = args.level }
+                                , gridSize = level.gridSize
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -330,10 +334,10 @@ game attrs args maybeGame =
     maybeGame
         |> Maybe.map
             (\g ->
-                List.range -1 (Config.gridSize args.level)
+                List.range -1 g.stage.gridSize
                     |> List.map
                         (\y ->
-                            List.range -1 (Config.gridSize args.level)
+                            List.range -1 g.stage.gridSize
                                 |> List.map
                                     (\x ->
                                         g

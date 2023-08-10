@@ -238,6 +238,6 @@ clear level stage =
             stage.grid
                 |> Dict.filter
                     (\( x, y ) _ ->
-                        x == -1 || x == Config.gridSize level || y == -1 || y == Config.gridSize level
+                        x == -1 || x == stage.gridSize || y == -1 || y == stage.gridSize
                     )
     }
