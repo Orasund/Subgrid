@@ -147,9 +147,6 @@ view model =
          then
             View.primaryButton (SetDialog (Just LevelComplete)) "Done"
 
-         else if Dict.isEmpty model.levels |> not then
-            View.button SelectLevel "Edit Levels"
-
          else
             Layout.none
         )
@@ -314,6 +311,29 @@ placeModule model { moduleId, rotation, pos } =
         |> Maybe.withDefault model
 
 
+findNextStage : Model -> Model
+findNextStage m =
+    let
+        model =
+            case
+                m |> loadStage { level = m.level, stage = m.stage + 1 }
+            of
+                Just a ->
+                    a
+
+                Nothing ->
+                    m.level
+                        |> Level.next
+                        |> Maybe.andThen
+                            (\level ->
+                                m
+                                    |> loadStage { level = level, stage = 1 }
+                            )
+                        |> Maybe.withDefault { m | game = Nothing }
+    in
+    model
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -429,23 +449,7 @@ update msg model =
         NextStage ->
             ( model
                 |> saveLevel
-                |> (\m ->
-                        case
-                            m |> loadStage { level = m.level, stage = m.stage + 1 }
-                        of
-                            Just a ->
-                                a
-
-                            Nothing ->
-                                m.level
-                                    |> Level.next
-                                    |> Maybe.andThen
-                                        (\level ->
-                                            m
-                                                |> loadStage { level = level, stage = 1 }
-                                        )
-                                    |> Maybe.withDefault { m | game = Nothing }
-                   )
+                |> findNextStage
             , Cmd.none
             )
 
