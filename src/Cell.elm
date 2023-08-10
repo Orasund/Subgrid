@@ -1,6 +1,7 @@
 module Cell exposing (..)
 
 import Color
+import Config
 import Dict exposing (Dict)
 import Level exposing (Level)
 import RelativePos exposing (RelativePos)
@@ -74,5 +75,16 @@ toColor args isActive cell =
                         [] ->
                             Color.inactiveLaser args.level
 
-                        ( _, { originId } ) :: _ ->
-                            Color.laserColor args.level originId
+                        [ ( _, from1 ) ] ->
+                            if Dict.size from == Config.powerStrengths args.level then
+                                Color.laserColor args.level from1.originId
+
+                            else
+                                Color.inactiveLaser args.level
+
+                        ( _, from1 ) :: ( _, from2 ) :: _ ->
+                            if from1 == from2 then
+                                Color.laserColor args.level from1.originId
+
+                            else
+                                Color.inactiveLaser args.level

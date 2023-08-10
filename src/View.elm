@@ -254,7 +254,7 @@ tileLevel1 args cell =
         |> View.Svg.singleCell
             { tileSize = args.cellSize
             , render =
-                View.Render.cellRender { powerStrengths = Config.powerStrengths args.level }
+                View.Render.cellRender args.level
                     cell
             , background = Color.tileBackground
             }
@@ -314,7 +314,7 @@ tileGeneric args stages cell =
                 |> View.Svg.singleCell
                     { tileSize = args.cellSize
                     , render =
-                        View.Render.cellRender { powerStrengths = Config.powerStrengths args.level }
+                        View.Render.cellRender args.level
                             cell
                     , background = Color.tileBackground
                     }

@@ -25,20 +25,22 @@ fromStage stage =
     }
 
 
-isSolved : Game -> Bool
-isSolved game =
+isSolved : Level -> Game -> Bool
+isSolved level game =
     game.stage.targets
         |> Dict.toList
         |> List.all
             (\( pos, _ ) ->
                 case game.stage.grid |> Dict.get pos of
                     Just (Target target) ->
-                        target.from
-                            |> Dict.values
-                            |> List.map .originId
-                            |> Set.fromList
-                            |> Set.size
-                            |> (==) 1
+                        (Dict.size target.from == Config.powerStrengths level)
+                            && (target.from
+                                    |> Dict.values
+                                    |> List.map .originId
+                                    |> Set.fromList
+                                    |> Set.size
+                                    |> (==) 1
+                               )
 
                     _ ->
                         False
@@ -182,13 +184,6 @@ tick args game =
                                                     ( dir.from, { originId = originId } )
                                                 )
                                 )
-                            |> (\list ->
-                                    if List.length list < Config.powerStrengths args.level then
-                                        []
-
-                                    else
-                                        list
-                               )
                             |> Dict.fromList
                             |> (\from -> Target { from = from, id = id })
 

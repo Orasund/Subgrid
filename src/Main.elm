@@ -142,7 +142,7 @@ view : Model -> Html Msg
 view model =
     [ [ (if
             model.game
-                |> Maybe.map Game.isSolved
+                |> Maybe.map (Game.isSolved model.level)
                 |> Maybe.withDefault False
          then
             View.primaryButton (SetDialog (Just LevelComplete)) "Done"
@@ -414,7 +414,7 @@ update msg model =
                     if
                         not updating
                             && (newGrid
-                                    |> Maybe.map Game.isSolved
+                                    |> Maybe.map (Game.isSolved model.level)
                                     |> Maybe.withDefault False
                                )
                     then

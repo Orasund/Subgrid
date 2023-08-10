@@ -4,13 +4,14 @@ import Cell exposing (Cell(..))
 import Color
 import Config exposing (powerStrengths)
 import Dict
+import Level exposing (Level)
 import Svg exposing (Svg)
 import Svg.Attributes
 import View.Svg exposing (RenderFunction)
 
 
-cellRender : { powerStrengths : Int } -> Cell -> RenderFunction msg
-cellRender args cell =
+cellRender : Level -> Cell -> RenderFunction msg
+cellRender level cell =
     case cell of
         ConnectionCell _ ->
             boxRender
@@ -21,27 +22,58 @@ cellRender args cell =
         Origin _ ->
             boxRender
 
-        Target { id, from } ->
+        Target { from } ->
             case from |> Dict.toList of
-                [ _ ] ->
-                    targetRender
-                        { secondaryColor = Color.wallColor
-                        , variant = args.powerStrengths
-                        , small = False
-                        , fill = True
-                        }
+                [ ( _, { originId } ) ] ->
+                    if Dict.size from == Config.powerStrengths level then
+                        targetRender
+                            { secondaryColor = Color.wallColor
+                            , trinaryColor = Color.wallColor
+                            , variant = Config.powerStrengths level
+                            , small = False
+                            , fill = True
+                            }
+
+                    else
+                        targetRender
+                            { secondaryColor = Color.laserColor level originId
+                            , trinaryColor = Color.wallColor
+                            , variant = Config.powerStrengths level
+                            , small = False
+                            , fill = False
+                            }
+
+                [ ( _, from1 ), ( _, from2 ) ] ->
+                    if from1.originId == from2.originId then
+                        targetRender
+                            { secondaryColor = Color.wallColor
+                            , trinaryColor = Color.wallColor
+                            , variant = Config.powerStrengths level
+                            , small = False
+                            , fill = True
+                            }
+
+                    else
+                        targetRender
+                            { secondaryColor = Color.laserColor level from1.originId
+                            , trinaryColor = Color.laserColor level from2.originId
+                            , variant = Config.powerStrengths level
+                            , small = False
+                            , fill = False
+                            }
 
                 _ ->
                     targetRender
                         { secondaryColor = Color.wallColor
-                        , variant = args.powerStrengths
+                        , trinaryColor = Color.wallColor
+                        , variant = Config.powerStrengths level
                         , small = False
                         , fill = False
                         }
 
 
-targetRender : { secondaryColor : String, variant : Int, small : Bool, fill : Bool } -> RenderFunction msg
-targetRender { secondaryColor, variant, small, fill } args =
+targetRender : { secondaryColor : String, trinaryColor : String, variant : Int, small : Bool, fill : Bool } -> RenderFunction msg
+targetRender { secondaryColor, trinaryColor, variant, small, fill } args =
     let
         ( x, y ) =
             args.pos
@@ -61,14 +93,14 @@ targetRender { secondaryColor, variant, small, fill } args =
                             f * 1
                    )
 
-        baseattrs =
+        baseattrs color =
             if fill then
-                [ Svg.Attributes.fill secondaryColor ]
+                [ Svg.Attributes.fill color ]
 
             else
                 [ Svg.Attributes.strokeWidth
                     (size / 3 |> String.fromFloat)
-                , Svg.Attributes.stroke secondaryColor
+                , Svg.Attributes.stroke color
                 , Svg.Attributes.fill "none"
                 ]
     in
@@ -88,7 +120,7 @@ targetRender { secondaryColor, variant, small, fill } args =
                          , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
                          , Svg.Attributes.r (size |> String.fromFloat)
                          ]
-                            ++ baseattrs
+                            ++ baseattrs secondaryColor
                         )
                         []
                     , Svg.circle
@@ -96,7 +128,7 @@ targetRender { secondaryColor, variant, small, fill } args =
                          , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
                          , Svg.Attributes.r (size / 2 |> String.fromFloat)
                          ]
-                            ++ baseattrs
+                            ++ baseattrs trinaryColor
                         )
                         []
                     ]
@@ -107,7 +139,7 @@ targetRender { secondaryColor, variant, small, fill } args =
                          , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
                          , Svg.Attributes.r (size |> String.fromFloat)
                          ]
-                            ++ baseattrs
+                            ++ baseattrs secondaryColor
                         )
                         []
                     ]
