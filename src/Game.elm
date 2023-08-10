@@ -14,6 +14,7 @@ import StaticArray.Index as Index
 
 type alias Game =
     { stage : Stage
+    , levels : Dict String (Dict Int SavedStage)
     , isConnected : Dict RelativePos { targetIds : Set Int }
     }
 
@@ -21,8 +22,14 @@ type alias Game =
 fromStage : Stage -> Game
 fromStage stage =
     { stage = stage
+    , levels = Dict.empty
     , isConnected = Dict.empty
     }
+
+
+loadStage : Stage -> Game -> Game
+loadStage stage game =
+    { game | stage = stage, isConnected = Dict.empty }
 
 
 isSolved : Level -> Game -> Bool
@@ -47,14 +54,35 @@ isSolved level game =
             )
 
 
-fromSave : SavedStage -> Game
-fromSave savedLevel =
-    savedLevel.grid
-        |> Dict.toList
-        |> List.map (Tuple.mapFirst RelativePos.unsafeToTuple)
-        |> Dict.fromList
-        |> Stage.fromDict { gridSize = savedLevel.gridSize }
-        |> fromStage
+saveLevel : { level : Level, stage : Int } -> Game -> Game
+saveLevel args game =
+    let
+        maxPos =
+            game.levels
+                |> Dict.get (args.level |> Level.previous |> Maybe.withDefault Index.first |> Level.toString)
+                |> Maybe.withDefault Dict.empty
+                |> Dict.toList
+                |> List.head
+                |> Maybe.map (\( _, { gridSize } ) -> gridSize)
+                |> Maybe.withDefault 1
+    in
+    { game
+        | levels =
+            game
+                |> toSave { level = args.level, maxPos = maxPos }
+                |> Maybe.map
+                    (\savedGame ->
+                        game.levels
+                            |> Dict.update (Level.toString args.level)
+                                (\maybe ->
+                                    maybe
+                                        |> Maybe.withDefault Dict.empty
+                                        |> Dict.insert args.stage savedGame
+                                        |> Just
+                                )
+                    )
+                |> Maybe.withDefault game.levels
+    }
 
 
 toSave : { level : Level, maxPos : Int } -> Game -> Maybe SavedStage
@@ -208,17 +236,25 @@ tick args game =
            )
 
 
-update : Level -> Dict Int SavedStage -> Game -> ( Game, Bool )
-update level stages game =
+update : Level -> Game -> ( Game, Bool )
+update level game =
     let
+        stages =
+            level
+                |> Level.previous
+                |> Maybe.andThen
+                    (\previousLevel ->
+                        game.levels
+                            |> Dict.get (Level.toString previousLevel)
+                    )
+                |> Maybe.withDefault Dict.empty
+
         maxPos =
             stages
-                |> Debug.log "stages"
                 |> Dict.toList
                 |> List.head
                 |> Maybe.map (\( _, { gridSize } ) -> gridSize)
                 |> Maybe.withDefault 1
-                |> Debug.log "maxPos"
 
         neighborsDirLevel1 pos stage =
             Dir.list

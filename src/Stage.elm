@@ -241,3 +241,12 @@ clear level stage =
                         x == -1 || x == stage.gridSize || y == -1 || y == stage.gridSize
                     )
     }
+
+
+fromSave : SavedStage -> Stage
+fromSave savedLevel =
+    savedLevel.grid
+        |> Dict.toList
+        |> List.map (Tuple.mapFirst RelativePos.unsafeToTuple)
+        |> Dict.fromList
+        |> fromDict { gridSize = savedLevel.gridSize }

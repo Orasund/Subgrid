@@ -21,23 +21,28 @@ tileSelect :
     { selected : Maybe { moduleId : Int, rotation : Int }
     , editTile : { level : Level, stage : Int } -> msg
     , unselect : msg
-    , game : Maybe Game
     , level : Level
     , selectTile : { moduleId : Int, rotation : Int } -> msg
-    , levels : Dict String (Dict Int SavedStage)
     , cellSize : Int
     , clearStage : msg
     }
-    -> Dict Int SavedStage
+    -> Maybe Game
     -> List (Html msg)
-tileSelect args dict =
+tileSelect args maybeGame =
     case args.selected of
         Just { moduleId, rotation } ->
             if args.selected /= Nothing then
                 [ "Select Position" |> cardTitle
                 , "Click on the position where you want to place the tile" |> Layout.text []
-                , dict
-                    |> Dict.get moduleId
+                , args.level
+                    |> Level.previous
+                    |> Maybe.andThen
+                        (\level ->
+                            maybeGame
+                                |> Maybe.map .levels
+                                |> Maybe.andThen (Dict.get (level |> Level.toString))
+                        )
+                    |> Maybe.andThen (Dict.get moduleId)
                     |> Maybe.map
                         (\level ->
                             level.grid
@@ -83,7 +88,15 @@ tileSelect args dict =
               ]
                 |> Layout.row [ Layout.contentWithSpaceBetween ]
             , "Select a tile you want to place" |> Layout.text []
-            , dict
+            , args.level
+                |> Level.previous
+                |> Maybe.andThen
+                    (\level ->
+                        maybeGame
+                            |> Maybe.map .levels
+                            |> Maybe.andThen (Dict.get (level |> Level.toString))
+                    )
+                |> Maybe.withDefault Dict.empty
                 |> Dict.toList
                 |> List.map
                     (\( stageId, level ) ->
@@ -323,8 +336,7 @@ tileGeneric args stages cell =
 game :
     List (Attribute msg)
     ->
-        { levels : Dict Int SavedStage
-        , onToggle : ( Int, Int ) -> Maybe msg
+        { onToggle : ( Int, Int ) -> Maybe msg
         , level : Level
         , cellSize : Int
         }
@@ -334,6 +346,17 @@ game attrs args maybeGame =
     maybeGame
         |> Maybe.map
             (\g ->
+                let
+                    levels =
+                        args.level
+                            |> Level.previous
+                            |> Maybe.andThen
+                                (\level ->
+                                    g.levels
+                                        |> Dict.get (Level.toString level)
+                                )
+                            |> Maybe.withDefault Dict.empty
+                in
                 List.range -1 g.stage.gridSize
                     |> List.map
                         (\y ->
@@ -348,7 +371,7 @@ game attrs args maybeGame =
                                                     }
                                                 )
                                                 { pos = ( x, y )
-                                                , levels = args.levels
+                                                , levels = levels
                                                 , level = args.level
                                                 , cellSize = args.cellSize
                                                 }

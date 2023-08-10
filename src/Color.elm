@@ -73,11 +73,13 @@ primaryColors =
         "#ff6a6a"
       , --green
         "#23bf24"
+      , --orange
+        "#e3b464"
+      , --türkis
+        "#0096c0"
       , --violett
         --"#cc35a1"
         "#ed5ac3"
-      , --türkis
-        "#0096c0"
       ]
     )
         |> StaticArray.fromList Level.maxLevel

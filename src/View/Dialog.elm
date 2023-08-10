@@ -28,18 +28,20 @@ tileSelect :
     { removeTile : ( Int, Int ) -> msg
     , selected : ( Int, Int )
     , unselect : msg
-    , game : Maybe Game
     , level : Level
     , placeModule : { moduleId : Int, rotation : Int } -> msg
-    , levels : Dict String (Dict Int SavedStage)
     , cellSize : Int
     }
-    -> Dict Int SavedStage
+    -> Game
     -> DialogHtml msg
-tileSelect args dict =
+tileSelect args game =
     [ "Select Tile" |> View.cardTitle
     , "Select a tile you want to place" |> Layout.text []
-    , dict
+    , args.level
+        |> Debug.log "level"
+        |> Level.previous
+        |> Maybe.andThen (\level -> game.levels |> Debug.log "levels" |> Dict.get (Level.toString level))
+        |> Maybe.withDefault Dict.empty
         |> Dict.toList
         |> List.map
             (\( id, level ) ->
@@ -82,9 +84,7 @@ tileSelect args dict =
             )
         |> Layout.column [ Layout.gap 8 ]
     , (if
-        args.game
-            |> Maybe.map (\game -> game.stage.grid)
-            |> Maybe.withDefault Dict.empty
+        game.stage.grid
             |> Dict.member args.selected
        then
         [ View.button (args.removeTile args.selected) "Remove" ]
@@ -100,7 +100,7 @@ tileSelect args dict =
 
 levelSelect :
     { load : { level : Level, stage : Int } -> msg
-    , levels : Dict String (Dict Int SavedStage)
+    , game : Maybe Game
     , dismiss : msg
     }
     -> DialogHtml msg
@@ -110,8 +110,9 @@ levelSelect args =
         |> List.reverse
         |> List.map
             (\level ->
-                args.levels
-                    |> Dict.get (level |> Level.toString)
+                args.game
+                    |> Maybe.map .levels
+                    |> Maybe.andThen (Dict.get (level |> Level.toString))
                     |> Maybe.withDefault Dict.empty
                     |> View.savedLevels { level = level }
                         (\stage ->
@@ -128,7 +129,6 @@ levelSelect args =
 
 levelSolved :
     { level : Level
-    , levels : Dict String (Dict Int SavedStage)
     , game : Maybe Game
     , stage : Int
     , nextStage : msg
@@ -140,16 +140,7 @@ levelSolved args =
         ++ " Solved"
         |> View.cardTitle
     , View.game []
-        { levels =
-            args.level
-                |> Level.previous
-                |> Maybe.andThen
-                    (\level ->
-                        args.levels
-                            |> Dict.get (level |> Level.toString)
-                    )
-                |> Maybe.withDefault Dict.empty
-        , onToggle = \_ -> Nothing
+        { onToggle = \_ -> Nothing
         , level = args.level
         , cellSize = Config.midCellSize
         }

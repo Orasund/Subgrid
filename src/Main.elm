@@ -28,7 +28,6 @@ type Dialog
 
 type alias Model =
     { game : Maybe Game
-    , levels : Dict String (Dict Int SavedStage)
     , updating : Bool
     , stage : Int
     , level : Level
@@ -59,8 +58,7 @@ init () =
         stage =
             1
     in
-    ( { game = Game.Generate.new { level = level, stage = stage }
-      , levels = Dict.empty
+    ( { game = Game.Generate.new { level = level, stage = stage } |> Maybe.map Game.fromStage
       , updating = False
       , level = level
       , stage = 1
@@ -77,61 +75,37 @@ init () =
     )
 
 
-saveLevel : Model -> Model
-saveLevel model =
-    let
-        maxPos =
-            model.levels
-                |> Dict.get (model.level |> Level.previous |> Maybe.withDefault Index.first |> Level.toString)
-                |> Maybe.withDefault Dict.empty
-                |> Dict.toList
-                |> List.head
-                |> Maybe.map (\( _, { gridSize } ) -> gridSize)
-                |> Maybe.withDefault 1
-    in
-    { model
-        | levels =
-            model.game
-                |> Maybe.andThen (Game.toSave { level = model.level, maxPos = maxPos })
-                |> Maybe.map
-                    (\savedGame ->
-                        model.levels
-                            |> Dict.update (Level.toString model.level)
-                                (\maybe ->
-                                    maybe
-                                        |> Maybe.withDefault Dict.empty
-                                        |> Dict.insert model.stage savedGame
-                                        |> Just
-                                )
-                    )
-                |> Maybe.withDefault model.levels
-    }
-
-
 loadStage : { stage : Int, level : Level } -> Model -> Maybe Model
 loadStage args model =
-    model.levels
-        |> Dict.get (Level.toString args.level)
-        |> Maybe.withDefault Dict.empty
-        |> Dict.get args.stage
-        |> Maybe.map Game.fromSave
-        |> Maybe.map Just
-        |> Maybe.withDefault (Game.Generate.new args)
-        |> Maybe.map
-            (\grid ->
-                { model
-                    | game = Just grid
-                    , level = args.level
-                    , stage = args.stage
-                    , dialog = Nothing
-                }
+    model.game
+        |> Maybe.andThen
+            (\game ->
+                game.levels
+                    |> Dict.get (Level.toString args.level)
+                    |> Maybe.withDefault Dict.empty
+                    |> Dict.get args.stage
+                    |> Maybe.map Stage.fromSave
+                    |> Maybe.map Just
+                    |> Maybe.withDefault (Game.Generate.new args)
+                    |> Maybe.map
+                        (\stage ->
+                            { model
+                                | game = game |> Game.loadStage stage |> Just
+                                , level = args.level
+                                , stage = args.stage
+                                , dialog = Nothing
+                            }
+                        )
             )
 
 
 generateStage : { stage : Int, level : Level } -> Model -> Model
 generateStage args model =
     { model
-        | game = Game.Generate.new args
+        | game =
+            Maybe.map2 Game.loadStage
+                (Game.Generate.new args)
+                model.game
         , level = args.level
         , stage = args.stage
         , dialog = Nothing
@@ -155,45 +129,22 @@ view model =
                 , stage = model.stage
                 }
       , View.game []
-            { levels =
-                model.level
-                    |> Level.previous
-                    |> Maybe.andThen
-                        (\level ->
-                            model.levels
-                                |> Dict.get (Level.toString level)
-                        )
-                    |> Maybe.withDefault Dict.empty
-            , onToggle = \pos -> Just (Toggle pos)
+            { onToggle = \pos -> Just (Toggle pos)
             , level = model.level
             , cellSize = Config.bigCellSize
             }
             model.game
-      , (model.level
-            |> Level.previous
-            |> Maybe.andThen
-                (\level ->
-                    model.levels
-                        |> Dict.get (level |> Level.toString)
-                )
-            |> Maybe.map
-                (\grid ->
-                    grid
-                        |> View.tileSelect
-                            { selected = model.tileSelected
-                            , editTile = LoadStage
-                            , unselect = SelectTile Nothing
-                            , game = model.game
-                            , level = model.level
-                            , selectTile = \a -> SelectTile (Just { moduleId = a.moduleId, rotation = a.rotation })
-                            , levels = model.levels
-                            , cellSize = Config.smallCellSize
-                            , clearStage = ClearStage
-                            }
-                        |> View.card [ Layout.gap 16 ]
-                )
-        )
-            |> Maybe.withDefault Layout.none
+      , model.game
+            |> View.tileSelect
+                { selected = model.tileSelected
+                , editTile = LoadStage
+                , unselect = SelectTile Nothing
+                , level = model.level
+                , selectTile = \a -> SelectTile (Just { moduleId = a.moduleId, rotation = a.rotation })
+                , cellSize = Config.smallCellSize
+                , clearStage = ClearStage
+                }
+            |> View.card [ Layout.gap 16 ]
       ]
         |> Layout.column
             [ Layout.gap 16
@@ -208,7 +159,6 @@ view model =
                         View.Dialog.levelSolved
                             { level = model.level
                             , stage = model.stage
-                            , levels = model.levels
                             , game = model.game
                             , nextStage = NextStage
                             , dismiss = SetDialog Nothing
@@ -218,29 +168,22 @@ view model =
                     LevelSelect ->
                         View.Dialog.levelSelect
                             { load = LoadStage
-                            , levels = model.levels
+                            , game = model.game
                             , dismiss = SetDialog Nothing
                             }
                             |> Just
 
                     TileSelect selected ->
-                        model.level
-                            |> Level.previous
+                        model.game
                             |> Maybe.map
-                                (\level ->
-                                    model.levels
-                                        |> Dict.get (Level.toString level)
-                                        |> Maybe.withDefault Dict.empty
-                                        |> View.Dialog.tileSelect
-                                            { removeTile = RemoveTile
-                                            , selected = selected
-                                            , unselect = SetDialog Nothing
-                                            , game = model.game
-                                            , level = model.level
-                                            , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
-                                            , levels = model.levels
-                                            , cellSize = Config.smallCellSize
-                                            }
+                                (View.Dialog.tileSelect
+                                    { removeTile = RemoveTile
+                                    , selected = selected
+                                    , unselect = SetDialog Nothing
+                                    , level = model.level
+                                    , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
+                                    , cellSize = Config.smallCellSize
+                                    }
                                 )
 
                     Tutorial message ->
@@ -319,17 +262,34 @@ findNextStage m =
                 m |> loadStage { level = m.level, stage = m.stage + 1 }
             of
                 Just a ->
-                    a
+                    if a.game |> isValid m.level then
+                        { m | stage = m.stage + 1 } |> findNextStage
+
+                    else
+                        a
 
                 Nothing ->
                     m.level
                         |> Level.next
-                        |> Maybe.andThen
+                        |> Maybe.map
                             (\level ->
-                                m
-                                    |> loadStage { level = level, stage = 1 }
+                                case m |> loadStage { level = level, stage = 1 } of
+                                    Just a ->
+                                        if a.game |> isValid level then
+                                            { m | level = level, stage = 1 } |> findNextStage
+
+                                        else
+                                            a
+
+                                    Nothing ->
+                                        { m | game = Nothing }
                             )
                         |> Maybe.withDefault { m | game = Nothing }
+
+        isValid level maybeGame =
+            maybeGame
+                |> Maybe.map (\game -> game |> Game.update level |> Tuple.first |> Game.isSolved level)
+                |> Maybe.withDefault False
     in
     model
 
@@ -414,15 +374,6 @@ update msg model =
                             (\game ->
                                 game
                                     |> Game.update model.level
-                                        (model.level
-                                            |> Level.previous
-                                            |> Maybe.andThen
-                                                (\level ->
-                                                    model.levels
-                                                        |> Dict.get (Level.toString level)
-                                                )
-                                            |> Maybe.withDefault Dict.empty
-                                        )
                                     |> Tuple.mapFirst Just
                             )
                         |> Maybe.withDefault ( Nothing, False )
@@ -447,8 +398,14 @@ update msg model =
             )
 
         NextStage ->
-            ( model
-                |> saveLevel
+            ( model.game
+                |> Maybe.map
+                    (\game ->
+                        game
+                            |> Game.saveLevel { level = model.level, stage = model.stage }
+                            |> (\g -> { model | game = Just g })
+                    )
+                |> Maybe.withDefault model
                 |> findNextStage
             , Cmd.none
             )

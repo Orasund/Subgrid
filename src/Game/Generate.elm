@@ -2,11 +2,11 @@ module Game.Generate exposing (..)
 
 import Game exposing (Game)
 import Level exposing (Level, LevelAmount)
-import Stage
+import Stage exposing (Stage)
 import StaticArray exposing (StaticArray)
 
 
-levels : StaticArray LevelAmount (Int -> Maybe Game)
+levels : StaticArray LevelAmount (Int -> Maybe Stage)
 levels =
     ( level1
     , [ level2
@@ -19,7 +19,7 @@ levels =
         |> StaticArray.fromList Level.maxLevel
 
 
-level1 : Int -> Maybe Game
+level1 : Int -> Maybe Stage
 level1 stage =
     case stage of
         1 ->
@@ -28,7 +28,6 @@ level1 stage =
                 , "🔘⬜⬛"
                 , "⬛⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -37,14 +36,13 @@ level1 stage =
                 , "🔘⬜🟥"
                 , "⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
             Nothing
 
 
-level2 : Int -> Maybe Game
+level2 : Int -> Maybe Stage
 level2 stage =
     case stage of
         1 ->
@@ -54,7 +52,6 @@ level2 stage =
                 , "⬛⬜⬜⬛"
                 , "⬛⬛⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -64,14 +61,13 @@ level2 stage =
                 , "⬛⬜⬜⬛"
                 , "⬛⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
             Nothing
 
 
-level3 : Int -> Maybe Game
+level3 : Int -> Maybe Stage
 level3 stage =
     case stage of
         1 ->
@@ -81,7 +77,6 @@ level3 stage =
                 , "⬛⬜⬜🟥"
                 , "⬛⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -91,14 +86,13 @@ level3 stage =
                 , "⬛⬜⬜⬛"
                 , "⬛⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
             Nothing
 
 
-level4 : Int -> Maybe Game
+level4 : Int -> Maybe Stage
 level4 stage =
     case stage of
         1 ->
@@ -109,7 +103,6 @@ level4 stage =
                 , "🔘⬜⬜⬜⬛"
                 , "⬛🟥⬛⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -120,7 +113,6 @@ level4 stage =
                 , "🟥⬜⬜⬜🔘"
                 , "⬛⬛⬛🟥⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         3 ->
@@ -131,7 +123,6 @@ level4 stage =
                 , "🟥⬜⬜⬜🟥"
                 , "⬛⬛⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
@@ -145,7 +136,7 @@ An alternative to this would be to introduce a stage that is just a crossing. Bu
 So this is the next best thing.
 
 -}
-level5 : Int -> Maybe Game
+level5 : Int -> Maybe Stage
 level5 stage =
     case stage of
         1 ->
@@ -158,7 +149,6 @@ level5 stage =
                 , "🔘⬜⬜⬜⬜⬛"
                 , "⬛🟥⬛⬛⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -171,7 +161,6 @@ level5 stage =
                 , "🟥⬜⬜⬜⬜🔘"
                 , "⬛⬛⬛⬛🟥⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         3 ->
@@ -184,7 +173,6 @@ level5 stage =
                 , "🟥⬜⬜⬜⬜🟥"
                 , "⬛⬛⬛⬛🔘⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
@@ -202,7 +190,6 @@ level7 stage =
                 , "⬛⬜⬜⬜⬜⬛"
                 , "⬛⬛🔘⬛⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         2 ->
@@ -214,7 +201,6 @@ level7 stage =
                 , "⬛⬜⬜⬜⬜⬛"
                 , "⬛⬛⬛🔘⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         3 ->
@@ -226,14 +212,13 @@ level7 stage =
                 , "⬛⬜⬜⬜⬜⬛"
                 , "⬛⬛⬛🔘⬛⬛"
                 ]
-                |> Game.fromStage
                 |> Just
 
         _ ->
             Nothing
 
 
-new : { level : Level, stage : Int } -> Maybe Game
+new : { level : Level, stage : Int } -> Maybe Stage
 new args =
     levels
         |> StaticArray.get args.level
