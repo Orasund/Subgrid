@@ -12,8 +12,8 @@ levels =
     , [ level2
       , level3
       , level4
-      , level7
-      , level7
+      , level6
+      , level6
       ]
     )
         |> StaticArray.fromList Level.maxLevel
@@ -48,9 +48,9 @@ level2 stage =
         1 ->
             Stage.parse
                 [ "⬛⬛🟥⬛"
+                , "⬛⬜⬜⬛"
                 , "🔘⬜⬜⬛"
-                , "⬛⬜⬜🟥"
-                , "⬛⬛🔘⬛"
+                , "⬛⬛⬛⬛"
                 ]
                 |> Just
 
@@ -99,11 +99,11 @@ level4 stage =
     case stage of
         1 ->
             Stage.parse
-                [ "⬛🔘⬛🟥⬛"
-                , "🟥⬜⬜⬜🔘"
+                [ "⬛🟥⬛🟥⬛"
+                , "🔘⬜⬜⬜🟥"
                 , "⬛⬜⬜⬜⬛"
                 , "🔘⬜⬜⬜⬛"
-                , "⬛🟥⬛⬛⬛"
+                , "⬛🔘⬛⬛⬛"
                 ]
                 |> Just
 
@@ -181,7 +181,7 @@ level5 stage =
             Nothing
 
 
-level7 stage =
+level6 stage =
     case stage of
         1 ->
             Stage.parse

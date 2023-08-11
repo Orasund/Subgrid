@@ -5948,7 +5948,7 @@ var $author$project$Game$Generate$level2 = function (stage) {
 			return $elm$core$Maybe$Just(
 				$author$project$Stage$parse(
 					_List_fromArray(
-						['⬛⬛🟥⬛', '🔘⬜⬜⬛', '⬛⬜⬜🟥', '⬛⬛🔘⬛'])));
+						['⬛⬛🟥⬛', '⬛⬜⬜⬛', '🔘⬜⬜⬛', '⬛⬛⬛⬛'])));
 		case 2:
 			return $elm$core$Maybe$Just(
 				$author$project$Stage$parse(
@@ -5980,7 +5980,7 @@ var $author$project$Game$Generate$level4 = function (stage) {
 			return $elm$core$Maybe$Just(
 				$author$project$Stage$parse(
 					_List_fromArray(
-						['⬛🔘⬛🟥⬛', '🟥⬜⬜⬜🔘', '⬛⬜⬜⬜⬛', '🔘⬜⬜⬜⬛', '⬛🟥⬛⬛⬛'])));
+						['⬛🟥⬛🟥⬛', '🔘⬜⬜⬜🟥', '⬛⬜⬜⬜⬛', '🔘⬜⬜⬜⬛', '⬛🔘⬛⬛⬛'])));
 		case 2:
 			return $elm$core$Maybe$Just(
 				$author$project$Stage$parse(
@@ -5995,7 +5995,7 @@ var $author$project$Game$Generate$level4 = function (stage) {
 			return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$Game$Generate$level7 = function (stage) {
+var $author$project$Game$Generate$level6 = function (stage) {
 	switch (stage) {
 		case 1:
 			return $elm$core$Maybe$Just(
@@ -6027,7 +6027,7 @@ var $author$project$Game$Generate$levels = A2(
 	_Utils_Tuple2(
 		$author$project$Game$Generate$level1,
 		_List_fromArray(
-			[$author$project$Game$Generate$level2, $author$project$Game$Generate$level3, $author$project$Game$Generate$level4, $author$project$Game$Generate$level7, $author$project$Game$Generate$level7])));
+			[$author$project$Game$Generate$level2, $author$project$Game$Generate$level3, $author$project$Game$Generate$level4, $author$project$Game$Generate$level6, $author$project$Game$Generate$level6])));
 var $author$project$Game$Generate$new = function (args) {
 	return function (fun) {
 		return fun(args.stage);
@@ -8318,24 +8318,41 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				args.onPress)));
 };
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
-var $author$project$Color$primaryColors = A2(
-	$Orasund$elm_static_array$StaticArray$fromList,
-	$author$project$Level$maxLevel,
-	_Utils_Tuple2(
-		'#e0e12e',
-		_List_fromArray(
-			['#ff6a6a', '#23bf24', '#f4ad36', '#0096c0', '#ed5ac3'])));
+var $author$project$Color$laserColors = function () {
+	var yellow = '#e0e12e';
+	var violet = '#ed5ac3';
+	var turcoise = '#0096c0';
+	var red = '#ff6a6a';
+	var orange = '#f4ad36';
+	var green = '#23bf24';
+	return A2(
+		$Orasund$elm_static_array$StaticArray$fromList,
+		$author$project$Level$maxLevel,
+		_Utils_Tuple2(
+			{primary: yellow, trinary: orange},
+			_List_fromArray(
+				[
+					{primary: green, trinary: turcoise},
+					{primary: turcoise, trinary: yellow},
+					{primary: orange, trinary: red},
+					{primary: red, trinary: violet},
+					{primary: violet, trinary: turcoise}
+				])));
+}();
 var $author$project$Color$laserColor = F2(
 	function (level, originId) {
+		var _v0 = A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$laserColors);
+		var primary = _v0.primary;
+		var trinary = _v0.trinary;
 		switch (originId) {
 			case 0:
-				return A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$primaryColors);
+				return primary;
 			case 1:
-				return 'color-mix(in lch,' + (A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$primaryColors) + ', black 10%)');
+				return 'color-mix(in lch, color-mix(in lch,' + (primary + (', ' + (trinary + ' 50%), black 30%)')));
 			case 2:
-				return 'color-mix(in lch,' + (A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$primaryColors) + ', black 20%)');
+				return 'color-mix(in lch,color-mix(in lch,' + (primary + (', ' + (trinary + ' 75%), white 30%)')));
 			default:
-				return 'color-mix(in lch,' + (A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$primaryColors) + ', black 30%)');
+				return 'color-mix(in lch,' + (primary + (', ' + (trinary + ')')));
 		}
 	});
 var $author$project$Color$inactiveLaser = function (level) {

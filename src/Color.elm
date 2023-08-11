@@ -26,18 +26,22 @@ wallColor =
 
 laserColor : Level -> Int -> String
 laserColor level originId =
+    let
+        { primary, trinary } =
+            laserColors |> StaticArray.get level
+    in
     case originId of
         0 ->
-            primaryColors |> StaticArray.get level
+            primary
 
         1 ->
-            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 10%)"
+            "color-mix(in lch, color-mix(in lch," ++ primary ++ ", " ++ trinary ++ " 50%), black 30%)"
 
         2 ->
-            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 20%)"
+            "color-mix(in lch,color-mix(in lch," ++ primary ++ ", " ++ trinary ++ " 75%), white 30%)"
 
         _ ->
-            "color-mix(in lch," ++ (primaryColors |> StaticArray.get level) ++ ", black 30%)"
+            "color-mix(in lch," ++ primary ++ ", " ++ trinary ++ ")"
 
 
 inactiveLaser : Level -> String
@@ -71,22 +75,41 @@ darkGray =
     "#d9d9d9"
 
 
-primaryColors : StaticArray LevelAmount String
-primaryColors =
-    ( --yellow
-      "#e0e12e"
-    , [ --red
-        --"#cc353c"
-        "#ff6a6a"
-      , --green
-        "#23bf24"
-      , --orange
-        "#f4ad36"
-      , --türkis
-        "#0096c0"
-      , --violett
-        --"#cc35a1"
-        "#ed5ac3"
+laserColors : StaticArray LevelAmount { primary : String, trinary : String }
+laserColors =
+    let
+        yellow =
+            --yellow
+            "#e0e12e"
+
+        red =
+            --red
+            --"#cc353c"
+            "#ff6a6a"
+
+        green =
+            --green
+            "#23bf24"
+
+        orange =
+            --orange
+            "#f4ad36"
+
+        turcoise =
+            --türkis
+            "#0096c0"
+
+        violet =
+            --violett
+            --"#cc35a1"
+            "#ed5ac3"
+    in
+    ( { primary = yellow, trinary = orange }
+    , [ { primary = green, trinary = turcoise }
+      , { primary = turcoise, trinary = yellow }
+      , { primary = orange, trinary = red }
+      , { primary = red, trinary = violet }
+      , { primary = violet, trinary = turcoise }
       ]
     )
         |> StaticArray.fromList Level.maxLevel
